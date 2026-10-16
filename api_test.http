@@ -21,7 +21,7 @@ Content-Type: application/json
 }
 
 # Token Save Variable
-@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzkyMTUwNTkwLCJpYXQiOjE3OTIwNjQxOTAsImp0aSI6ImM0YTllOWY2NjA1MTQ3NTlhOTQyZDNlNjFlYTA4MTcxIiwidXNlcl9pZCI6IjMifQ.bYAEo0rDd5J-_7mlGcsKjeAUuV9GNkexMJrtxI-cJMk
+@authToken = {}
 ### 3. Get Authenticated Farmer Profile
 GET {{baseUrl}}/auth/profile/
 Authorization: Bearer {{authToken}}
