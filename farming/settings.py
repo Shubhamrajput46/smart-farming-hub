@@ -122,16 +122,20 @@ DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
 
 if DATABASE_URL:
     import dj_database_url
+    
     DATABASES = {
         "default": dj_database_url.parse(
             DATABASE_URL,
             conn_max_age=600,
-            conn_health_checks=True
+            conn_health_checks=True,
         )
     }
-    # Agar MySQL DATABASE_URL use ho raha ho toh utf8mb4 ensure karein
+
     if "mysql" in DATABASES["default"].get("ENGINE", ""):
-        DATABASES["default"].setdefault("OPTIONS", {})["charset"] = "utf8mb4"
+        options = DATABASES["default"].setdefault("OPTIONS", {})
+        options["charset"] = "utf8mb4"
+        options["ssl_mode"] = "REQUIRED"
+
 elif DB_NAME:
     DATABASES = {
         "default": {
