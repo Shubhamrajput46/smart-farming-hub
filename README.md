@@ -11,19 +11,6 @@ Signup -> Khet (Land) -> Fasal (Buwai) -> Kheti Kaam (majdoor/paani/khad/spray, 
   udhaar chukana, yaad-dihani (aaj/kal/late), document expiry.
 - Cron/Task Scheduler me roz: `python manage.py generate_alerts`
 
-## Structure
-accounts/ (login, signup, profile, documents) | farms/ (land, crop, operations, dashboard)
-finance/ (expense, sale, reports) | notifications/ (alerts + reminders) | ai_services/ (mandi, yojana; AI pest scan baad me)
-templates/ static/css/style.css static/js/app.js
-
-Tests: `python manage.py test`
-
-
-## Auto-logout (website chhodne par)
-- Tab/window band hone par browser `/accounts/leaving/` ko beacon bhejta hai (`static/js/app.js`).
-- Server `SITE_LEAVE_GRACE_SECONDS` (default 15 sec) tak wait karta hai; user wapas nahi aaya to logout (`accounts/middleware.py`).
-- Reload ya ek page se doosre page par jaane par logout nahi hota. Doosra tab khula ho to bhi nahi.
-- `SESSION_EXPIRE_AT_BROWSER_CLOSE = True` se browser band hone par cookie bhi delete ho jaati hai.
 
 ## Frontend <-> API
 `static/js/api.js` (`AgroAPI`) same-origin session + CSRF se REST API call karta hai.
