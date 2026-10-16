@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Kharcha{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>💸 Kharcha (Expenses)</h1><p>Beej, khad, dawai, diesel, majdoori - har kharche ka hisaab.</p></div>
+    <div class="actions"><a href="{% url 'finance:expense_add' %}" class="btn btn-primary-glow"><i class="fa-solid fa-plus"></i> Naya Kharcha</a>
+        <a href="{% url 'finance:export' 'expenses' %}" class="btn btn-ghost"><i class="fa-solid fa-file-csv"></i> CSV</a></div>
+</div>
+<div class="grid-stats">
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#f87171;background:rgba(239,68,68,.1)"><i class="fa-solid fa-wallet"></i></div><div class="stat-info"><span>Kul Kharcha (filter ke hisaab se)</span><h3>&#8377;{{ total }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#fbbf24;background:rgba(245,158,11,.1)"><i class="fa-solid fa-hand-holding-dollar"></i></div><div class="stat-info"><span>Udhaar Baaki</span><h3 class="text-warning">&#8377;{{ pending }}</h3></div></div>
+</div>
+<form method="get" class="glass-card filters">
+    <div class="f" style="flex:2"><label>Khoj</label><input name="q" value="{{ sel.q }}" class="form-input" placeholder="Kharcha ya dukaan ka naam"></div>
+    <div class="f"><label>Shreni</label><select name="category" class="form-input"><option value="">Sab</option>
+        {% for v, l in categories %}<option value="{{ v }}" {% if sel.category == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="f"><label>Payment</label><select name="status" class="form-input"><option value="">Sab</option>
+        <option value="Paid" {% if sel.status == 'Paid' %}selected{% endif %}>Chukta</option><option value="Pending" {% if sel.status == 'Pending' %}selected{% endif %}>Baaki</option></select></div>
+    <div class="f"><label>Fasal</label><select name="crop" class="form-input"><option value="">Sab</option>
+        {% for c in crops %}<option value="{{ c.pk }}" {% if sel.crop == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+    <button class="btn btn-primary-glow">Filter</button><a href="{% url 'finance:expenses' %}" class="btn btn-ghost">Reset</a>
+</form>
+<div class="glass-card">
+    <div class="table-wrap"><table class="custom-table stack-table">
+        <thead><tr><th>Tarikh</th><th>Kharcha</th><th>Shreni</th><th>Fasal</th><th>Kisko</th><th>Rashi</th><th>Payment</th><th></th></tr></thead>
+        <tbody>
+        {% for e in page %}
+        <tr><td data-label="Tarikh" class="nowrap">{{ e.date|date:"d M Y" }}</td>
+            <td data-label="Kharcha"><b>{{ e.title }}</b>{% if e.source_operation_id %} <span class="badge-status neutral">Kheti kaam se</span>{% endif %}</td>
+            <td data-label="Shreni">{{ e.get_category_display }}</td>
+            <td data-label="Fasal">{{ e.crop.name|default:"Aam" }}</td>
+            <td data-label="Kisko">{{ e.paid_to|default:"-" }}</td>
+            <td data-label="Rashi"><b>&#8377;{{ e.amount }}</b></td>
+            <td data-label="Payment"><span class="badge-status {{ e.payment_status|lower }}">{{ e.get_payment_status_display }}</span></td>
+            <td class="actions-cell">
+                {% if e.payment_status == 'Pending' %}<form method="post" action="{% url 'finance:expense_paid' e.pk %}" class="inline-form">{% csrf_token %}<button class="btn btn-sm btn-outline" title="Chukta karein"><i class="fa-solid fa-check"></i> Chukta</button></form>{% endif %}
+                <a href="{% url 'finance:expense_edit' e.pk %}" class="btn btn-sm btn-ghost"><i class="fa-solid fa-pen"></i></a>
+                <a href="{% url 'finance:expense_delete' e.pk %}" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></a></td></tr>
+        {% empty %}<tr><td colspan="8"><div class="empty"><i class="fa-solid fa-wallet"></i><h4>Koi kharcha nahi mila</h4><a href="{% url 'finance:expense_add' %}" class="btn btn-primary-glow">Kharcha Add Karein</a></div></td></tr>{% endfor %}
+        </tbody></table></div>
+    {% include 'partials/_pagination.html' %}
+</div>
+{% endblock %}

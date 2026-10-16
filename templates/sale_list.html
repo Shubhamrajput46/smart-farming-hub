@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Bikri{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>💰 Bikri (Sales)</h1><p>Mandi / vyapari ko bechi fasal, mila hua aur baaki paisa.</p></div>
+    <div class="actions"><a href="{% url 'finance:sale_add' %}" class="btn btn-primary-glow"><i class="fa-solid fa-plus"></i> Nayi Bikri</a>
+        <a href="{% url 'finance:export' 'sales' %}" class="btn btn-ghost"><i class="fa-solid fa-file-csv"></i> CSV</a></div>
+</div>
+<div class="grid-stats">
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div><div class="stat-info"><span>Kul Bikri</span><h3 class="text-success">&#8377;{{ revenue }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-weight-hanging"></i></div><div class="stat-info"><span>Kul Matra</span><h3>{{ qty }} Qt</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-circle-check"></i></div><div class="stat-info"><span>Paisa Mila</span><h3>&#8377;{{ received }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#fbbf24;background:rgba(245,158,11,.1)"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-info"><span>Milna Baaki</span><h3 class="text-warning">&#8377;{{ balance }}</h3></div></div>
+</div>
+{% if stock_crops %}
+<div class="glass-card" style="margin-bottom:22px"><h3 class="mb-2"><i class="fa-solid fa-warehouse"></i> Godown me Stock</h3>
+    <div class="row-flex">{% for c in stock_crops %}<a class="chip" href="{% url 'finance:sale_add' %}?crop={{ c.pk }}">{{ c.name }}: <b>{{ c.remaining_stock }} Qt</b></a>{% endfor %}</div></div>
+{% endif %}
+<form method="get" class="glass-card filters">
+    <div class="f"><label>Fasal</label><select name="crop" class="form-input"><option value="">Sab</option>
+        {% for c in crops %}<option value="{{ c.pk }}" {% if sel.crop == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+    <div class="f"><label>Payment</label><select name="status" class="form-input"><option value="">Sab</option>
+        <option value="Paid" {% if sel.status == 'Paid' %}selected{% endif %}>Poora Mila</option><option value="Partial" {% if sel.status == 'Partial' %}selected{% endif %}>Aanshik</option><option value="Pending" {% if sel.status == 'Pending' %}selected{% endif %}>Baaki</option></select></div>
+    <button class="btn btn-primary-glow">Filter</button><a href="{% url 'finance:sales' %}" class="btn btn-ghost">Reset</a>
+</form>
+<div class="glass-card">
+    <div class="table-wrap"><table class="custom-table stack-table">
+        <thead><tr><th>Tarikh</th><th>Fasal</th><th>Kharidar</th><th>Matra</th><th>Bhav</th><th>Net Rashi</th><th>Baaki</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for s in page %}
+        <tr><td data-label="Tarikh" class="nowrap">{{ s.sale_date|date:"d M Y" }}</td>
+            <td data-label="Fasal">{{ s.crop.name|default:"-" }}</td>
+            <td data-label="Kharidar"><b>{{ s.buyer_name }}</b><div class="muted small">{{ s.get_sale_place_display }}</div></td>
+            <td data-label="Matra">{{ s.quantity_quintals }} Qt</td>
+            <td data-label="Bhav">&#8377;{{ s.price_per_quintal }}</td>
+            <td data-label="Net Rashi"><b>&#8377;{{ s.total_amount }}</b></td>
+            <td data-label="Baaki" class="{% if s.balance %}text-warning{% endif %}">&#8377;{{ s.balance }}</td>
+            <td data-label="Status"><span class="badge-status {{ s.payment_status|lower }}">{{ s.get_payment_status_display }}</span></td>
+            <td class="actions-cell">
+                {% if s.balance %}<button type="button" class="btn btn-sm btn-outline" data-modal-open="receiveModal" data-action="{% url 'finance:sale_receive' s.pk %}" data-amount="{{ s.balance }}" data-label="{{ s.buyer_name }} se baaki: &#8377;{{ s.balance }}"><i class="fa-solid fa-hand-holding-dollar"></i> Paisa Mila</button>{% endif %}
+                <a href="{% url 'finance:sale_edit' s.pk %}" class="btn btn-sm btn-ghost"><i class="fa-solid fa-pen"></i></a>
+                <a href="{% url 'finance:sale_delete' s.pk %}" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></a></td></tr>
+        {% empty %}<tr><td colspan="9"><div class="empty"><i class="fa-solid fa-sack-dollar"></i><h4>Abhi koi bikri nahi</h4><p>Bikri ke liye pehle fasal ka utpadan (Katayi) darj karein.</p><a href="{% url 'finance:sale_add' %}" class="btn btn-primary-glow">Bikri Darj Karein</a></div></td></tr>{% endfor %}
+        </tbody></table></div>
+    {% include 'partials/_pagination.html' %}
+</div>
+
+<div class="modal" id="receiveModal"><div class="glass-card">
+    <h3 class="mb-2">Paisa Mila</h3><p class="muted small mb-2" data-modal-label></p>
+    <form method="post" action="">{% csrf_token %}
+        <div class="field" style="margin-bottom:16px"><label>Kitna mila (Rs)</label><input class="form-input" type="number" step="0.01" min="0.01" name="amount" required></div>
+        <div class="actions"><button type="submit" class="btn btn-primary-glow" style="flex:1">Save</button><button type="button" class="btn btn-ghost" data-modal-close>Cancel</button></div>
+    </form></div></div>
+{% endblock %}

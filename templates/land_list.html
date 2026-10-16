@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Khet (Land){% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>🌾 Mere Khet</h1><p>Kul {{ lands|length }} khet, {{ total_area }} Acre zameen.</p></div>
+    <div class="actions"><a href="{% url 'farms:land_add' %}" class="btn btn-primary-glow"><i class="fa-solid fa-plus"></i> Naya Khet</a></div>
+</div>
+<div class="grid grid-auto">
+    {% for land in lands %}
+    <div class="glass-card item-card">
+        <div class="between"><h3><a href="{% url 'farms:land_detail' land.pk %}">{{ land.title }}</a></h3><span class="badge-status neutral">{{ land.get_ownership_display }}</span></div>
+        <div class="meta"><span><i class="fa-solid fa-ruler-combined"></i> {{ land.total_area_acres }} Acre</span>
+            <span><i class="fa-solid fa-hashtag"></i> {{ land.khasra_number|default:"-" }}</span>
+            <span><i class="fa-solid fa-droplet"></i> {{ land.get_water_source_display }}</span>
+            <span><i class="fa-solid fa-mountain"></i> {{ land.get_soil_type_display }}</span></div>
+        <div><div class="between small muted mb-2"><span>Upyog: {{ land.sown_acres }} / {{ land.total_area_acres }} Acre</span><span>{{ land.usage_pct }}%</span></div>
+            <div class="progress"><span style="width:{{ land.usage_pct }}%"></span></div></div>
+        <div class="card-actions">
+            <a href="{% url 'farms:land_detail' land.pk %}" class="btn btn-sm btn-ghost">Details</a>
+            <a href="{% url 'farms:crop_add' %}?land={{ land.pk }}" class="btn btn-sm btn-outline"><i class="fa-solid fa-seedling"></i> Fasal Boyein</a>
+            <a href="{% url 'farms:land_edit' land.pk %}" class="btn btn-sm btn-ghost btn-icon" aria-label="Edit"><i class="fa-solid fa-pen"></i></a>
+            <a href="{% url 'farms:land_delete' land.pk %}" class="btn btn-sm btn-danger btn-icon" aria-label="Delete"><i class="fa-solid fa-trash"></i></a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="glass-card empty" style="grid-column:1/-1"><i class="fa-solid fa-map"></i><h4>Koi khet nahi</h4><p>Apna pehla khet add karein.</p>
+        <a href="{% url 'farms:land_add' %}" class="btn btn-primary-glow">Khet Add Karein</a></div>
+    {% endfor %}
+</div>
+{% endblock %}

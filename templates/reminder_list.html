@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Yaad-dihani{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>📝 Yaad-dihani (To-Do)</h1><p>Khet ke kaam jo bhoolne nahi chahiye. Samay par soochna milegi.</p></div>
+    <div class="actions"><a href="{% url 'notifications:reminder_add' %}" class="btn btn-primary-glow"><i class="fa-solid fa-plus"></i> Nayi Yaad-dihani</a></div>
+</div>
+<div class="chips">
+    <a class="chip {% if show == 'pending' %}active{% endif %}" href="?show=pending">Baaki</a>
+    <a class="chip {% if show == 'done' %}active{% endif %}" href="?show=done">Ho Gaye</a>
+    <a class="chip {% if show == 'all' %}active{% endif %}" href="?show=all">Sab</a>
+</div>
+<div class="glass-card">
+    {% for r in reminders %}
+    <div class="list-row">
+        <div class="row-flex" style="flex:1;min-width:0">
+            <form method="post" action="{% url 'notifications:reminder_toggle' r.pk %}" class="inline-form">{% csrf_token %}
+                <button class="btn btn-sm {% if r.is_done %}btn-primary-glow{% else %}btn-ghost{% endif %}" title="Ho gaya / Wapas"><i class="fa-solid fa-check"></i></button></form>
+            <div style="min-width:0"><b {% if r.is_done %}style="text-decoration:line-through;opacity:.6"{% endif %}>{{ r.title }}</b>
+                <div class="muted small">{{ r.due_date|date:"d M Y" }}{% if r.crop %} &bull; {{ r.crop.name }}{% endif %}{% if r.notes %} &bull; {{ r.notes }}{% endif %}</div></div>
+        </div>
+        <div class="row-flex">
+            {% if r.is_done %}<span class="badge-status healthy">Ho gaya</span>
+            {% elif r.due_date < today %}<span class="badge-status danger">Late</span>
+            {% elif r.due_date == today %}<span class="badge-status warning">Aaj</span>
+            {% else %}<span class="badge-status info">Aane wala</span>{% endif %}
+            <a href="{% url 'notifications:reminder_edit' r.pk %}" class="btn btn-sm btn-ghost"><i class="fa-solid fa-pen"></i></a>
+            <a href="{% url 'notifications:reminder_delete' r.pk %}" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></a>
+        </div>
+    </div>
+    {% empty %}<div class="empty"><i class="fa-regular fa-calendar-check"></i><h4>Koi yaad-dihani nahi</h4><a href="{% url 'notifications:reminder_add' %}" class="btn btn-primary-glow">Naya Kaam Add Karein</a></div>{% endfor %}
+</div>
+{% endblock %}

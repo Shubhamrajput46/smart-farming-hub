@@ -1,0 +1,118 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#060d09">
+    <meta name="color-scheme" content="dark">
+    <script>document.documentElement.classList.add("js");</script>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Smart Farming{% endblock %} | AgroSmart</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+{% with p=request.path %}
+    <div class="overlay" id="overlay"></div>
+
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar">
+        <a class="brand" href="{% url 'farms:dashboard' %}"><i class="fa-solid fa-seedling"></i><span>AgroSmart</span></a>
+        <ul class="nav-links">
+            <li class="nav-item {% if p == '/dashboard/' %}active{% endif %}"><a href="{% url 'farms:dashboard' %}"><i class="fa-solid fa-gauge-high"></i> Dashboard</a></li>
+
+            <li class="nav-title">Kheti</li>
+            <li class="nav-item {% if '/lands/' in p %}active{% endif %}"><a href="{% url 'farms:land_list' %}"><i class="fa-solid fa-map"></i> Khet (Land)</a></li>
+            <li class="nav-item {% if '/crops/' in p %}active{% endif %}"><a href="{% url 'farms:crop_list' %}"><i class="fa-solid fa-wheat-awn"></i> Fasal (Crops)</a></li>
+            <li class="nav-item {% if '/crop-care/' in p %}active{% endif %}"><a href="{% url 'farms:operation_list' %}"><i class="fa-solid fa-hand-holding-droplet"></i> Kheti Kaam</a></li>
+            <li class="nav-item {% if '/reminders/' in p %}active{% endif %}"><a href="{% url 'notifications:reminders' %}"><i class="fa-solid fa-list-check"></i> Yaad-dihani</a></li>
+
+            <li class="nav-title">Hisaab</li>
+            <li class="nav-item {% if '/finance/expenses' in p %}active{% endif %}"><a href="{% url 'finance:expenses' %}"><i class="fa-solid fa-wallet"></i> Kharcha</a></li>
+            <li class="nav-item {% if '/finance/sales' in p %}active{% endif %}"><a href="{% url 'finance:sales' %}"><i class="fa-solid fa-sack-dollar"></i> Bikri</a></li>
+            <li class="nav-item {% if '/finance/reports' in p %}active{% endif %}"><a href="{% url 'finance:reports' %}"><i class="fa-solid fa-chart-pie"></i> Reports</a></li>
+
+            <li class="nav-title">Jaankari</li>
+            <li class="nav-item {% if '/market/' in p %}active{% endif %}"><a href="{% url 'ai_services:market' %}"><i class="fa-solid fa-shop"></i> Mandi Bhav</a></li>
+            <li class="nav-item {% if '/loan-subsidy/' in p %}active{% endif %}"><a href="{% url 'ai_services:loan_subsidy' %}"><i class="fa-solid fa-building-columns"></i> Yojana / Subsidy</a></li>
+            <li class="nav-item {% if '/pest-detection/' in p %}active{% endif %}"><a href="{% url 'ai_services:pest_detection' %}"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Pest Scan</a></li>
+
+            <li class="nav-title">Mera Account</li>
+            <li class="nav-item {% if p == '/notifications/' %}active{% endif %}"><a href="{% url 'notifications:list' %}"><i class="fa-solid fa-bell"></i> Soochnayein <span class="count nav-unread" {% if not unread_count %}style="display:none"{% endif %}>{{ unread_count }}</span></a></li>
+            <li class="nav-item {% if '/accounts/profile' in p %}active{% endif %}"><a href="{% url 'accounts:profile' %}"><i class="fa-solid fa-circle-user"></i> Meri Profile</a></li>
+            <li class="nav-item">
+                <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+                    <button type="submit"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                </form>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- ===== Top bar ===== -->
+    <header class="topbar">
+        <button class="menu-toggle" id="menuToggle" aria-label="Menu" type="button"><i class="fa-solid fa-bars"></i></button>
+        <span class="topbar-brand"><i class="fa-solid fa-seedling"></i> AgroSmart</span>
+        <div class="spacer"></div>
+
+        <div class="notif-wrap">
+            <button type="button" class="icon-btn" id="notifBell" aria-label="Soochnayein" data-api="{% url 'notifications:api_summary' %}">
+                <i class="fa-solid fa-bell"></i>
+                <span class="dot" id="notifBadge" data-count="{{ unread_count|default:0 }}" {% if not unread_count %}style="display:none"{% endif %}>{{ unread_count }}</span>
+            </button>
+            <div class="notif-menu" id="notifMenu">
+                <header><span>Soochnayein</span>
+                    <form method="post" action="{% url 'notifications:read_all' %}">{% csrf_token %}<input type="hidden" name="next" value="{{ p }}">
+                        <button class="btn btn-sm btn-ghost" type="submit">Sab padhi</button></form>
+                </header>
+                {% for n in recent_notifications %}
+                <a class="notif-item sev-{{ n.severity }} {% if not n.is_read %}unread{% endif %}" href="{% if n.link %}{{ n.link }}{% else %}{% url 'notifications:list' %}{% endif %}">
+                    <div class="notif-ico"><i class="fa-solid {{ n.icon }}"></i></div>
+                    <div class="notif-body"><b>{{ n.title }}</b>{% if n.message %}<p>{{ n.message|truncatechars:70 }}</p>{% endif %}<small>{{ n.created_at|timesince }} pehle</small></div>
+                </a>
+                {% empty %}
+                <div class="empty" style="padding:28px"><i class="fa-regular fa-bell"></i>Koi soochna nahi</div>
+                {% endfor %}
+                <a class="notif-item" style="justify-content:center;color:var(--primary)" href="{% url 'notifications:list' %}">Sab dekhein</a>
+            </div>
+        </div>
+
+        <a class="user-chip" href="{% url 'accounts:profile' %}">
+            {% if request.farmer.avatar %}<img class="avatar" src="{{ request.farmer.avatar.url }}" alt="">{% else %}<span class="avatar">{{ request.farmer.initials }}</span>{% endif %}
+            <span class="uname">{{ request.farmer.full_name }}</span>
+        </a>
+    </header>
+
+    <!-- ===== Messages (toast) ===== -->
+    <div class="toast-stack" id="toastStack">
+        {% for message in messages %}
+        <div class="toast {{ message.tags }}">
+            <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% elif message.tags == 'danger' %}fa-circle-exclamation{% elif message.tags == 'warning' %}fa-triangle-exclamation{% else %}fa-circle-info{% endif %}"></i>
+            <span>{{ message }}</span><button type="button" aria-label="Band">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <main class="main-layout">
+        {% block content %}{% endblock %}
+    </main>
+    <!-- ===== Mobile bottom navigation ===== -->
+    <nav class="bottom-nav" aria-label="Quick navigation">
+        <a href="{% url 'farms:dashboard' %}" class="{% if p == '/dashboard/' %}active{% endif %}"><i class="fa-solid fa-gauge-high"></i><span>Home</span></a>
+        <a href="{% url 'farms:crop_list' %}" class="{% if '/crops/' in p %}active{% endif %}"><i class="fa-solid fa-wheat-awn"></i><span>Fasal</span></a>
+        <a href="{% url 'finance:expenses' %}" class="{% if '/finance/expenses' in p %}active{% endif %}"><i class="fa-solid fa-wallet"></i><span>Kharcha</span></a>
+        <a href="{% url 'finance:sales' %}" class="{% if '/finance/sales' in p %}active{% endif %}"><i class="fa-solid fa-sack-dollar"></i><span>Bikri</span></a>
+        <button type="button" id="bottomMenu" aria-label="Menu"><i class="fa-solid fa-grip"></i><span>Menu</span></button>
+    </nav>
+    <button type="button" class="to-top" id="toTop" aria-label="Upar jayein"><i class="fa-solid fa-arrow-up"></i></button>
+{% endwith %}
+    <script>window.AGRO = { leavingUrl: "{% url 'accounts:leaving' %}", loginUrl: "{% url 'accounts:login' %}" };</script>
+    <script src="{% static 'js/api.js' %}"></script>
+    <script src="{% static 'js/app.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

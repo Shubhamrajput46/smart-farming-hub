@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Meri Profile{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>👤 Meri Profile</h1></div>
+    <div class="actions"><a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary-glow"><i class="fa-solid fa-pen"></i> Edit Profile</a></div></div>
+<div class="grid grid-2">
+    <div class="glass-card">
+        <div class="row-flex" style="gap:20px;margin-bottom:20px">
+            {% if profile.avatar %}<img class="avatar lg" src="{{ profile.avatar.url }}" alt="">{% else %}<span class="avatar lg">{{ profile.initials }}</span>{% endif %}
+            <div><h2>{{ profile.full_name }}</h2><div class="muted">{{ profile.farmer_id_code }}</div>
+                <span class="badge-status {% if profile.is_verified %}healthy{% else %}pending{% endif %}" style="margin-top:8px">{% if profile.is_verified %}Verified{% else %}Verification baaki{% endif %}</span></div>
+        </div>
+        <div class="kv">
+            <div><span>Mobile</span><b>{{ profile.phone|default:"-" }}</b></div>
+            <div><span>Gaon</span><b>{{ profile.village|default:"-" }}</b></div>
+            <div><span>Zila / Rajya</span><b>{{ profile.district }}, {{ profile.state }}</b></div>
+            <div><span>Anubhav</span><b>{{ profile.experience_years }} saal</b></div>
+            <div><span>Khet</span><b>{{ land_count }}</b></div>
+            <div><span>Fasalein (kul)</span><b>{{ crop_count }}</b></div>
+        </div>
+    </div>
+    <div class="glass-card">
+        <h3 class="mb-2">Haal ki Gatividhi</h3>
+        {% for a in activities %}<div class="list-row"><span>{{ a.title }}</span><span class="muted small nowrap">{{ a.created_at|timesince }} pehle</span></div>
+        {% empty %}<div class="empty"><i class="fa-solid fa-clock-rotate-left"></i>Abhi koi gatividhi nahi.</div>{% endfor %}
+    </div>
+</div>
+<div class="glass-card">
+    <div class="card-title"><h3><i class="fa-solid fa-folder-open"></i> Mere Documents</h3><a href="{% url 'accounts:document_add' %}" class="btn btn-sm btn-outline"><i class="fa-solid fa-plus"></i> Add</a></div>
+    {% for d in documents %}
+    <div class="list-row"><div><b>{{ d.title }}</b> <span class="badge-status neutral">{{ d.get_doc_type_display }}</span>
+        <div class="muted small">{{ d.uploaded_at|date:"d M Y" }}{% if d.expiry_date %} &bull; Khatam: {{ d.expiry_date|date:"d M Y" }}{% endif %}</div></div>
+        <div class="row-flex">{% if d.file %}<a href="{{ d.file.url }}" target="_blank" class="btn btn-sm btn-ghost"><i class="fa-solid fa-eye"></i></a>{% endif %}
+            <a href="{% url 'accounts:document_edit' d.pk %}" class="btn btn-sm btn-ghost"><i class="fa-solid fa-pen"></i></a>
+            <a href="{% url 'accounts:document_delete' d.pk %}" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></a></div></div>
+    {% empty %}<div class="empty"><i class="fa-solid fa-file-circle-plus"></i>Aadhaar, khasra, bank passbook jaise documents yahan rakhein.</div>{% endfor %}
+</div>
+{% endblock %}

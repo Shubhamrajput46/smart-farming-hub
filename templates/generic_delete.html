@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}Delete Confirm{% endblock %}
+{% block content %}
+<div style="max-width: 520px; margin: 40px auto;">
+    <div class="glass-card" style="text-align:center">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem;color:#f87171"></i>
+        <h2 style="margin:14px 0 8px">Pakka delete karein?</h2>
+        <p class="muted">{{ object_label }}</p>
+        {% if warning %}<div class="alert-box danger" style="margin-top:16px;text-align:left">{{ warning }}</div>{% endif %}
+        <form method="post" class="actions" style="margin-top:22px;justify-content:center">{% csrf_token %}
+            <button type="submit" class="btn btn-solid-danger"><i class="fa-solid fa-trash"></i> Haan, Delete Karein</button>
+            <a href="{% url cancel_url %}" class="btn btn-ghost">Nahi, Wapas</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

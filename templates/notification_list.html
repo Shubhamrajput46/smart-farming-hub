@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Soochnayein{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>🔔 Soochnayein</h1><p>Katayi, sinchai, khad, payment aur yaad-dihani ke alerts.</p></div>
+    <div class="actions">
+        <form method="post" action="{% url 'notifications:refresh' %}" class="inline-form">{% csrf_token %}<button class="btn btn-ghost"><i class="fa-solid fa-rotate"></i> Check Karein</button></form>
+        <form method="post" action="{% url 'notifications:read_all' %}" class="inline-form">{% csrf_token %}<button class="btn btn-outline"><i class="fa-solid fa-check-double"></i> Sab Padhi</button></form>
+        <form method="post" action="{% url 'notifications:clear_read' %}" class="inline-form">{% csrf_token %}<button class="btn btn-danger"><i class="fa-solid fa-broom"></i> Padhi Hui Hatayein</button></form>
+    </div>
+</div>
+<div class="chips">
+    <a class="chip {% if flt == 'all' %}active{% endif %}" href="?filter=all">Sab</a>
+    <a class="chip {% if flt == 'unread' %}active{% endif %}" href="?filter=unread">Na-padhi</a>
+    {% for v, l in kinds %}<a class="chip {% if flt == v %}active{% endif %}" href="?filter={{ v }}">{{ l }}</a>{% endfor %}
+</div>
+{% for n in page %}
+<div class="notif-page-item sev-{{ n.severity }} {% if not n.is_read %}unread{% endif %}">
+    <div class="notif-ico" style="width:42px;height:42px"><i class="fa-solid {{ n.icon }}"></i></div>
+    <div class="notif-body"><b>{{ n.title }}</b>{% if n.message %}<p>{{ n.message }}</p>{% endif %}<small>{{ n.created_at|date:"d M Y, H:i" }} ({{ n.created_at|timesince }} pehle)</small></div>
+    <div class="btns">
+        {% if n.link %}<form method="post" action="{% url 'notifications:read' n.pk %}" class="inline-form">{% csrf_token %}<input type="hidden" name="open" value="1"><button class="btn btn-sm btn-primary-glow">Kholein</button></form>{% endif %}
+        {% if not n.is_read %}<form method="post" action="{% url 'notifications:read' n.pk %}" class="inline-form">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-sm btn-ghost" title="Padhi mark karein"><i class="fa-solid fa-check"></i></button></form>{% endif %}
+        <form method="post" action="{% url 'notifications:delete' n.pk %}" class="inline-form">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}"><button class="btn btn-sm btn-danger" title="Hatayein"><i class="fa-solid fa-trash"></i></button></form>
+    </div>
+</div>
+{% empty %}<div class="glass-card empty"><i class="fa-regular fa-bell"></i><h4>Koi soochna nahi</h4></div>{% endfor %}
+{% include 'partials/_pagination.html' %}
+{% endblock %}

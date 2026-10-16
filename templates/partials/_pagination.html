@@ -1,0 +1,7 @@
+{% if page.paginator.num_pages > 1 %}
+<div class="pagination no-print">
+    {% if page.has_previous %}<a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page.previous_page_number }}">&laquo; Pichla</a>{% endif %}
+    <span>Page {{ page.number }} / {{ page.paginator.num_pages }}</span>
+    {% if page.has_next %}<a href="?{% if qs %}{{ qs }}&{% endif %}page={{ page.next_page_number }}">Agla &raquo;</a>{% endif %}
+</div>
+{% endif %}

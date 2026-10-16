@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Fasal (Crops){% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>🌱 Meri Fasalein</h1><p>Buwai se katayi tak har fasal ka record.</p></div>
+    <div class="actions"><a href="{% url 'farms:crop_add' %}" class="btn btn-primary-glow"><i class="fa-solid fa-plus"></i> Nayi Fasal</a></div>
+</div>
+<form method="get" class="glass-card filters">
+    <div class="f" style="flex:2"><label>Khoj</label><input class="form-input" name="q" value="{{ q }}" placeholder="Fasal ya khet ka naam"></div>
+    <div class="f"><label>Sthiti</label><select class="form-input" name="status" data-autosubmit>
+        <option value="active" {% if status == 'active' %}selected{% endif %}>Chalu</option>
+        <option value="completed" {% if status == 'completed' %}selected{% endif %}>Poori Hui</option>
+        <option value="all" {% if status == 'all' %}selected{% endif %}>Sab</option></select></div>
+    <button class="btn btn-primary-glow">Filter</button>
+</form>
+<div class="grid grid-auto">
+    {% for crop in page %}
+    <div class="glass-card item-card">
+        <div class="between"><h3><a href="{% url 'farms:crop_detail' crop.pk %}">{{ crop.name }}</a></h3>
+            <span class="badge-status {% if crop.is_active %}healthy{% else %}neutral{% endif %}">{{ crop.get_stage_display }}</span></div>
+        <div class="meta"><span><i class="fa-solid fa-map"></i> {{ crop.land.title }}</span><span><i class="fa-solid fa-ruler-combined"></i> {{ crop.allocated_acres }} Acre</span>
+            <span><i class="fa-solid fa-calendar"></i> {{ crop.get_season_display }} {{ crop.season_year }}</span></div>
+        <div><div class="between small muted mb-2"><span>Buwai: {{ crop.sowing_date|date:"d M" }}</span><span>Katayi: {{ crop.expected_harvest_date|date:"d M Y" }}</span></div>
+            <div class="progress {% if crop.is_overdue %}bad{% endif %}"><span style="width:{{ crop.progress_pct }}%"></span></div></div>
+        <div class="kv small"><div><span>Kharcha</span><b class="text-danger">&#8377;{{ crop.total_expense }}</b></div>
+            <div><span>Bikri</span><b class="text-success">&#8377;{{ crop.total_revenue }}</b></div></div>
+        <div class="card-actions">
+            <a href="{% url 'farms:crop_detail' crop.pk %}" class="btn btn-sm btn-ghost">Details</a>
+            {% if crop.is_active %}<a href="{% url 'farms:crop_harvest' crop.pk %}" class="btn btn-sm btn-outline">Katayi</a>{% endif %}
+            <a href="{% url 'farms:crop_edit' crop.pk %}" class="btn btn-sm btn-ghost btn-icon" aria-label="Edit"><i class="fa-solid fa-pen"></i></a>
+            <a href="{% url 'farms:crop_delete' crop.pk %}" class="btn btn-sm btn-danger btn-icon" aria-label="Delete"><i class="fa-solid fa-trash"></i></a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="glass-card empty" style="grid-column:1/-1"><i class="fa-solid fa-seedling"></i><h4>Koi fasal nahi mili</h4>
+        <a href="{% url 'farms:crop_add' %}" class="btn btn-primary-glow">Fasal Boyein</a></div>
+    {% endfor %}
+</div>
+{% include 'partials/_pagination.html' %}
+{% endblock %}

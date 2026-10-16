@@ -1,0 +1,13 @@
+{% extends 'registration/auth_base.html' %}
+{% block title %}Login | AgroSmart{% endblock %}
+{% block auth_content %}
+<p class="sub">Apne khet ka poora hisaab - ek jagah</p>
+<form method="post" data-once>{% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    {% if form.non_field_errors %}<div class="alert-box danger">Username ya password galat hai.</div>{% endif %}
+    <div class="field" style="margin-bottom:14px"><label>Username</label>{{ form.username }}</div>
+    <div class="field" style="margin-bottom:20px"><label>Password</label>{{ form.password }}</div>
+    <button type="submit" class="btn-primary-glow" style="width:100%"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+</form>
+<p class="sub" style="margin:18px 0 0">Naye kisan? <a href="{% url 'accounts:signup' %}">Account banayein</a></p>
+{% endblock %}

@@ -1,0 +1,102 @@
+
+@baseUrl = http://127.0.0.1:8000/api
+
+### Register Farmer
+POST {{baseUrl}}/auth/signup/
+Content-Type: application/json
+
+{
+    "username": "raanu",
+    "email": "shubh@example.com",
+    "password": "Password@123"
+}
+
+### Login
+POST {{baseUrl}}/auth/token/
+Content-Type: application/json
+
+{
+    "username": "raanu",
+    "password": "Password@123"
+}
+
+# Token Save Variable
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzkyMTUwNTkwLCJpYXQiOjE3OTIwNjQxOTAsImp0aSI6ImM0YTllOWY2NjA1MTQ3NTlhOTQyZDNlNjFlYTA4MTcxIiwidXNlcl9pZCI6IjMifQ.bYAEo0rDd5J-_7mlGcsKjeAUuV9GNkexMJrtxI-cJMk
+### 3. Get Authenticated Farmer Profile
+GET {{baseUrl}}/auth/profile/
+Authorization: Bearer {{authToken}}
+
+### 4. Create New Land (Protected)
+POST {{baseUrl}}/lands/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "title": "Khet No 1 - Dhar Road",
+    "khasra_number": "Khasra-402",
+    "total_area_acres": "12.00",
+    "soil_type": "Black Cotton",
+    "water_source": "Borewell",
+    "irrigation_type": "Drip"
+}
+
+### 5. Get All Lands
+GET {{baseUrl}}/lands/
+Authorization: Bearer {{authToken}}
+
+### 6. Create Sown Crop
+# POST {{baseUrl}}/crops/
+# Authorization: Bearer {{authToken}}
+# Content-Type: application/json
+
+# {
+#     "land": 1,
+#     "name": "Wheat (Lokwan)",
+#     "season": "Rabi 2026-27",
+#     "allocated_acres": "6.00",
+#     "sowing_date": "2026-10-15",
+#     "expected_harvest_date": "2027-03-25",
+#     "stage": "Vegetative",
+#     "expected_yield_quintal": "120.00"
+# }
+
+### 7. Get All Crops
+GET {{baseUrl}}/crops/
+Authorization: Bearer {{authToken}}
+
+# ### 8. Add Daily Operation / Labour Log
+# POST {{baseUrl}}/operations/
+# Authorization: Bearer {{authToken}}
+# Content-Type: application/json
+
+# {
+#     "crop": 1,
+#     "operation_type": "Labour",
+#     "date": "2026-10-15",
+#     "labour_count": 4,
+#     "labour_cost_per_person": "400.00",
+#     "total_cost": "1600.00",
+#     "notes": "Buwai aur nindayi ka kaam"
+# }
+
+### 9. Add Crop Sale Entry
+POST {{baseUrl}}/sales/
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "crop": 1,
+    "buyer_name": "Sharma Traders Indore Mandi",
+    "quantity_quintals": "50.00",
+    "price_per_quintal": "2850.00",
+    "total_amount": "142500.00",
+    "sale_date": "2026-10-15",
+    "payment_status": "Paid",
+    "remarks": "Bill No 102"
+}
+
+### 10. Public Mandi Prices API (No Token Needed)
+GET {{baseUrl}}/services/mandi-prices/
+
+### 11. Public Government Schemes API (No Token Needed)
+GET {{baseUrl}}/services/schemes/

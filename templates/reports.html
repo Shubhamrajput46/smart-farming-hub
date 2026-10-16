@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>📊 Munafa Reports</h1><p>Fasal-wise kharcha, bikri aur munafa.</p></div>
+    <div class="actions"><button onclick="window.print()" class="btn btn-ghost"><i class="fa-solid fa-print"></i> Print</button>
+        <a href="{% url 'finance:export' 'expenses' %}?from={{ sel.from }}&to={{ sel.to }}&crop={{ sel.crop }}" class="btn btn-ghost"><i class="fa-solid fa-file-csv"></i> Kharcha CSV</a>
+        <a href="{% url 'finance:export' 'sales' %}?from={{ sel.from }}&to={{ sel.to }}&crop={{ sel.crop }}" class="btn btn-ghost"><i class="fa-solid fa-file-csv"></i> Bikri CSV</a></div>
+</div>
+<form method="get" class="glass-card filters no-print">
+    <div class="f"><label>Se</label><input type="date" name="from" value="{{ sel.from }}" class="form-input"></div>
+    <div class="f"><label>Tak</label><input type="date" name="to" value="{{ sel.to }}" class="form-input"></div>
+    <div class="f"><label>Fasal</label><select name="crop" class="form-input"><option value="">Sab</option>
+        {% for c in crops %}<option value="{{ c.pk }}" {% if sel.crop == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+    <button class="btn btn-primary-glow">Dikhayein</button><a href="{% url 'finance:reports' %}" class="btn btn-ghost">Reset</a>
+</form>
+<div class="grid-stats">
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div><div class="stat-info"><span>Kul Bikri</span><h3 class="text-success">&#8377;{{ income }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#f87171;background:rgba(239,68,68,.1)"><i class="fa-solid fa-wallet"></i></div><div class="stat-info"><span>Kul Kharcha</span><h3 class="text-danger">&#8377;{{ expense }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#fbbf24;background:rgba(245,158,11,.1)"><i class="fa-solid fa-chart-line"></i></div><div class="stat-info"><span>Net Munafa</span><h3 class="{% if profit < 0 %}text-danger{% else %}text-success{% endif %}">&#8377;{{ profit }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#fbbf24;background:rgba(245,158,11,.1)"><i class="fa-solid fa-hourglass-half"></i></div><div class="stat-info"><span>Milna Baaki</span><h3 class="text-warning">&#8377;{{ receivable }}</h3></div></div>
+</div>
+
+<div class="grid grid-2">
+    <div class="glass-card"><h3 class="mb-2">Mahine-wise Bikri vs Kharcha</h3>
+        {% if chart.labels %}<div style="height:280px"><canvas id="monthlyChart"></canvas></div>{{ chart|json_script:"chartData" }}
+        {% else %}<div class="empty"><i class="fa-solid fa-chart-column"></i>Data aane par chart dikhega.</div>{% endif %}</div>
+    <div class="glass-card"><h3 class="mb-2">Shreni-wise Kharcha</h3>
+        {% for r in cat_rows %}
+        <div class="bar-row"><div class="between"><span>{{ r.label }}</span><b>&#8377;{{ r.total }} <span class="muted small">({{ r.share }}%)</span></b></div>
+            <div class="progress"><span style="width:{{ r.pct }}%"></span></div></div>
+        {% empty %}<div class="empty"><i class="fa-solid fa-chart-pie"></i>Koi kharcha nahi.</div>{% endfor %}</div>
+</div>
+<div class="glass-card">
+    <h3 class="mb-2">Fasal-wise Munafa</h3>
+    <div class="table-wrap"><table class="custom-table stack-table">
+        <thead><tr><th>Fasal</th><th>Khet</th><th>Acre</th><th>Kharcha</th><th>Bikri</th><th>Munafa</th><th>Munafa / Acre</th></tr></thead>
+        <tbody>
+        {% for r in rows %}
+        <tr><td data-label="Fasal"><a href="{% url 'farms:crop_detail' r.crop.pk %}"><b>{{ r.crop.name }}</b></a></td><td data-label="Khet">{{ r.crop.land.title }}</td>
+            <td data-label="Acre">{{ r.crop.allocated_acres }}</td><td data-label="Kharcha" class="text-danger">&#8377;{{ r.expense }}</td><td data-label="Bikri" class="text-success">&#8377;{{ r.revenue }}</td>
+            <td data-label="Munafa"><b class="{% if r.profit < 0 %}text-danger{% else %}text-success{% endif %}">&#8377;{{ r.profit }}</b></td><td data-label="Munafa / Acre">&#8377;{{ r.per_acre }}</td></tr>
+        {% empty %}<tr><td colspan="7"><div class="empty"><i class="fa-solid fa-file-invoice"></i>Report ke liye kharcha / bikri darj karein.</div></td></tr>{% endfor %}
+        </tbody></table></div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>window.addEventListener('load', function(){ if(window.__initChart) window.__initChart(); });</script>{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}{{ crop.name }}{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>{{ crop.name }}</h1>
+        <p>{{ crop.land.title }} &bull; {{ crop.allocated_acres }} Acre &bull; {{ crop.get_season_display }} {{ crop.season_year }}</p></div>
+    <div class="actions">
+        {% if crop.is_active %}<a href="{% url 'farms:crop_harvest' crop.pk %}" class="btn btn-primary-glow"><i class="fa-solid fa-wheat-awn"></i> Katayi / Utpadan</a>{% endif %}
+        {% if crop.actual_yield_quintal > 0 and crop.remaining_stock > 0 %}<a href="{% url 'finance:sale_add' %}?crop={{ crop.pk }}" class="btn btn-outline"><i class="fa-solid fa-sack-dollar"></i> Bikri Darj</a>{% endif %}
+        <a href="{% url 'farms:crop_edit' crop.pk %}" class="btn btn-ghost"><i class="fa-solid fa-pen"></i> Edit</a>
+        <a href="{% url 'farms:crop_delete' crop.pk %}" class="btn btn-danger"><i class="fa-solid fa-trash"></i></a>
+    </div>
+</div>
+
+<div class="glass-card" style="margin-bottom:22px">
+    <div class="between mb-2"><h3>Fasal ki Sthiti</h3>
+        {% if crop.is_active %}
+        <form method="post" action="{% url 'farms:crop_stage' crop.pk %}" class="row-flex">{% csrf_token %}
+            <select name="stage" class="form-input" style="min-height:38px;padding:6px 10px;width:auto" data-autosubmit>
+                {% for val, label in stages %}{% if val != 'Completed' %}<option value="{{ val }}" {% if val == crop.stage %}selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
+            </select>
+        </form>{% endif %}
+    </div>
+    <div class="stage-steps">
+        {% for val, label in stages %}<div class="step {% if val == crop.stage %}current{% endif %}">{{ label }}</div>{% endfor %}
+    </div>
+    <div class="progress mt-2 {% if crop.is_overdue %}bad{% endif %}"><span style="width:{{ crop.progress_pct }}%"></span></div>
+    <div class="between small muted" style="margin-top:6px"><span>Buwai: {{ crop.sowing_date|date:"d M Y" }}</span>
+        <span>{% if crop.is_active %}{% if crop.is_overdue %}Katayi {{ crop.days_to_harvest|cut:'-' }} din late{% else %}Katayi me {{ crop.days_to_harvest }} din{% endif %}{% else %}Katayi: {{ crop.actual_harvest_date|date:"d M Y" }}{% endif %}</span></div>
+</div>
+
+<div class="grid-stats">
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#f87171;background:rgba(239,68,68,.1)"><i class="fa-solid fa-wallet"></i></div><div class="stat-info"><span>Kul Kharcha</span><h3 class="text-danger">&#8377;{{ expense_total }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div><div class="stat-info"><span>Kul Bikri</span><h3 class="text-success">&#8377;{{ revenue_total }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#fbbf24;background:rgba(245,158,11,.1)"><i class="fa-solid fa-chart-line"></i></div><div class="stat-info"><span>Munafa</span><h3 class="{% if crop.net_profit < 0 %}text-danger{% else %}text-success{% endif %}">&#8377;{{ crop.net_profit }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-warehouse"></i></div><div class="stat-info"><span>Stock / Utpadan</span><h3>{{ crop.remaining_stock }} / {{ crop.actual_yield_quintal }} Qt</h3></div></div>
+</div>
+
+<div class="grid grid-2">
+    <div class="glass-card">
+        <h3 class="mb-2">Jaankari</h3>
+        <div class="kv">
+            <div><span>Anumaanit Utpadan</span><b>{{ crop.expected_yield_quintal }} Qt</b></div>
+            <div><span>Asli Utpadan</span><b>{{ crop.actual_yield_quintal }} Qt</b></div>
+            <div><span>Kharcha / Acre</span><b>&#8377;{{ crop.cost_per_acre }}</b></div>
+            <div><span>Bika hua</span><b>{{ crop.total_sold_quintals }} Qt</b></div>
+            <div><span>Beej</span><b>{{ crop.seed_info|default:"-" }}</b></div>
+            <div><span>Paisa mila</span><b>&#8377;{{ crop.total_received }}</b></div>
+        </div>
+        {% if crop.notes %}<p class="muted small mt-2">{{ crop.notes }}</p>{% endif %}
+        <div class="actions mt-2">
+            <a class="btn btn-sm btn-outline" href="{% url 'notifications:reminder_add' %}?crop={{ crop.pk }}"><i class="fa-solid fa-bell"></i> Yaad-dihani</a>
+            <a class="btn btn-sm btn-ghost" href="{% url 'finance:expense_add' %}?crop={{ crop.pk }}"><i class="fa-solid fa-plus"></i> Kharcha</a>
+        </div>
+    </div>
+    <div class="glass-card">
+        <div class="card-title"><h3>Kheti Kaam</h3>
+            <a class="btn btn-sm btn-outline" href="{% url 'farms:operation_add' %}?crop={{ crop.pk }}"><i class="fa-solid fa-plus"></i> Kaam Log</a></div>
+        {% for op in operations %}
+        <div class="list-row"><div><b>{{ op.get_operation_type_display }}</b>
+            <div class="muted small">{{ op.date|date:"d M Y" }}{% if op.labour_count %} | {{ op.labour_count }} majdoor{% endif %}{% if op.material_used %} | {{ op.material_used }}{% endif %}</div></div>
+            <div class="row-flex"><b>&#8377;{{ op.total_cost }}</b><a href="{% url 'farms:operation_edit' op.pk %}" class="btn btn-sm btn-ghost btn-icon"><i class="fa-solid fa-pen"></i></a></div></div>
+        {% empty %}<div class="empty"><i class="fa-solid fa-clipboard-list"></i>Abhi koi kaam log nahi hua.</div>{% endfor %}
+    </div>
+    <div class="glass-card">
+        <h3 class="mb-2">Kharcha ({{ expenses|length }})</h3>
+        {% for e in expenses %}
+        <div class="list-row"><div><b>{{ e.title }}</b><div class="muted small">{{ e.date|date:"d M" }} &bull; {{ e.get_category_display }}</div></div>
+            <div><b>&#8377;{{ e.amount }}</b> {% if e.payment_status == 'Pending' %}<span class="badge-status pending">Baaki</span>{% endif %}</div></div>
+        {% empty %}<div class="empty"><i class="fa-solid fa-wallet"></i>Koi kharcha nahi.</div>{% endfor %}
+    </div>
+    <div class="glass-card">
+        <h3 class="mb-2">Bikri ({{ sales|length }})</h3>
+        {% for s in sales %}
+        <div class="list-row"><div><b>{{ s.buyer_name }}</b><div class="muted small">{{ s.sale_date|date:"d M" }} &bull; {{ s.quantity_quintals }} Qt @ &#8377;{{ s.price_per_quintal }}</div></div>
+            <div><b>&#8377;{{ s.total_amount }}</b> <span class="badge-status {{ s.payment_status|lower }}">{{ s.get_payment_status_display }}</span></div></div>
+        {% empty %}<div class="empty"><i class="fa-solid fa-sack-dollar"></i>Abhi koi bikri nahi.</div>{% endfor %}
+    </div>
+</div>
+{% endblock %}

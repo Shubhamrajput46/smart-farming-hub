@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+{% block title %}Live Mandi Rates | AgroSmart{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div>
+        <h1 style="font-size: 1.8rem; font-weight: 700;">📈 Mandi Terminal & Pricing Intelligence</h1>
+        <p style="color: var(--text-secondary); margin-top: 4px;">Live official market prices synced directly from APMC / data.gov.in.</p>
+    </div>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <button type="button" id="apiRefresh" class="btn" style="border:1px solid var(--card-border)">
+            <i class="fa-solid fa-bolt"></i> API se refresh
+        </button>
+        <a href="{% url 'ai_services:market' %}?sync=true" class="btn-primary-glow" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-rotate"></i> Sync Live Bhav
+        </a>
+    </div>
+</div>
+
+<!-- Search & Filter Controls -->
+<div class="glass-card" style="padding: 16px 20px; margin-bottom: 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+    <div style="flex-grow: 1; min-width: 240px; position: relative;">
+        <i class="fa-solid fa-magnifying-glass" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary);"></i>
+        <input type="text" id="mandiSearch" class="form-input" placeholder="Search Crop or Market..." style="margin-bottom: 0; padding-left: 42px;" onkeyup="filterTable()">
+    </div>
+    <div style="min-width: 180px;">
+        <select id="mandiFilter" class="form-input" style="margin-bottom: 0;" onchange="filterTable()">
+            <option value="all">All Mandis</option>
+            <option value="indore">Indore</option>
+            <option value="dewas">Dewas</option>
+            <option value="ujjain">Ujjain</option>
+            <option value="mandsaur">Mandsaur</option>
+            <option value="ratlam">Ratlam</option>
+        </select>
+    </div>
+</div>
+
+<!-- Rates Table -->
+<div class="glass-card">
+    <div style="overflow-x: auto;">
+        <table class="custom-table" id="mandiTable">
+            <thead>
+                <tr>
+                    <th>Crop Commodity</th>
+                    <th>APMC Mandi</th>
+                    <th>Current Price / Qt</th>
+                    <th>Prior Session</th>
+                    <th>Net Variance</th>
+                    <th>Market Trend</th>
+                    <th>Last Synced</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in mandi_prices %}
+                <tr>
+                    <td><strong>🌾 {{ item.crop_name }}</strong></td>
+                    <td><i class="fa-solid fa-location-dot" style="color: var(--primary); margin-right: 6px;"></i><span class="market-name">{{ item.market_name }}</span></td>
+                    <td style="font-size: 1.1rem; font-weight: 700;">₹{{ item.today_price }}</td>
+                    <td style="color: var(--text-secondary);">₹{{ item.yesterday_price }}</td>
+                    <td style="font-weight: 600; color: {% if item.change_amount >= 0 %}#4ade80{% else %}#f87171{% endif %};">
+                        {% if item.change_amount > 0 %}+{% endif %}₹{{ item.change_amount }}
+                    </td>
+                    <td>
+                        <span class="badge-status {{ item.trend }}">
+                            {% if item.trend == 'rising' %}↑ Rising{% elif item.trend == 'falling' %}↓ Falling{% else %}→ Stable{% endif %}
+                        </span>
+                    </td>
+                    <td style="color: var(--text-secondary); font-size: 0.85rem;">
+                        {{ item.updated_at|date:"d M, H:i" }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 48px 16px;">
+                        <i class="fa-solid fa-wheat-awn-circle-exclamation" style="font-size: 2.5rem; color: var(--text-secondary); margin-bottom: 12px; display: block;"></i>
+                        <h4 style="margin-bottom: 6px;">No Live Mandi Bhav Available</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 16px;">Database mein koi data loaded nahi hai. Naye bhav fetch karne ke liye sync karein.</p>
+                        <a href="{% url 'ai_services:market' %}?sync=true" class="btn-primary-glow" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-arrows-rotate"></i> Fetch Current Rates Now
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // /api/services/mandi-prices/ se table bina page reload ke refresh karo
+    document.getElementById("apiRefresh").addEventListener("click", function () {
+        var btn = this; btn.disabled = true;
+        AgroAPI.get("/api/services/mandi-prices/?page_size=100").then(function (data) {
+            var tbody = document.querySelector("#mandiTable tbody");
+            var rows = data.results || [];
+            if (!rows.length) return;
+            tbody.innerHTML = "";
+            rows.forEach(function (r) {
+                var ch = parseFloat(r.change_amount), tr = document.createElement("tr");
+                function td(txt, css, cls) { var c = document.createElement("td"); c.textContent = txt; if (css) c.style.cssText = css; if (cls) c.className = cls; tr.appendChild(c); return c; }
+                td("\uD83C\uDF3E " + r.crop_name, "font-weight:700");
+                var m = td(r.market_name); m.className = "market-name";
+                td("\u20B9" + r.today_price, "font-size:1.1rem;font-weight:700");
+                td("\u20B9" + r.yesterday_price, "color:var(--text-secondary)");
+                td((ch > 0 ? "+" : "") + "\u20B9" + r.change_amount, "font-weight:600;color:" + (ch >= 0 ? "#4ade80" : "#f87171"));
+                td(r.trend === "rising" ? "\u2191 Rising" : r.trend === "falling" ? "\u2193 Falling" : "\u2192 Stable");
+                td(new Date(r.updated_at).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }), "color:var(--text-secondary);font-size:.85rem");
+                tbody.appendChild(tr);
+            });
+            filterTable();
+        }).catch(function (e) { alert(e.message); }).then(function () { btn.disabled = false; });
+    });
+
+    function filterTable() {
+        const searchVal = document.getElementById("mandiSearch").value.toLowerCase();
+        const filterVal = document.getElementById("mandiFilter").value.toLowerCase();
+        const rows = document.querySelectorAll("#mandiTable tbody tr");
+
+        rows.forEach(row => {
+            const cropCell = row.cells[0]?.textContent.toLowerCase() || "";
+            const marketCell = row.querySelector(".market-name")?.textContent.toLowerCase() || "";
+            
+            const matchesSearch = cropCell.includes(searchVal) || marketCell.includes(searchVal);
+            const matchesFilter = (filterVal === "all") || marketCell.includes(filterVal);
+
+            if (matchesSearch && matchesFilter) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+</script>
+{% endblock %}

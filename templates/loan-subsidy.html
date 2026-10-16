@@ -1,0 +1,356 @@
+{% extends 'base.html' %}
+{% block title %}Government Schemes & Subsidies | AgroSmart{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
+    <div>
+        <h1 style="font-size: 1.8rem; font-weight: 700;">💰 Government Schemes & Subsidies</h1>
+        <p style="color: var(--text-secondary); margin-top: 4px;">Active Central & State farmer welfare schemes, interest subvention, and crop subsidies.</p>
+    </div>
+</div>
+
+<!-- ================= AI SMART SCHEME RECOMMENDATIONS ================= -->
+{% if ai_recommendations %}
+<div class="glass-card" style="border: 1px solid var(--primary); margin-bottom: 28px; background: rgba(34, 197, 94, 0.04);">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <div>
+            <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-robot"></i> AI Tailored Recommendations For Your Farm
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 4px;">
+                AI ne aapke khet ({{ total_land|default:"0" }} Acres) aur khadi fasal ke hisaab se sabse upyogi schemes shortlist ki hain:
+            </p>
+        </div>
+        <span class="badge-status healthy" style="font-size: 0.85rem;">
+            <i class="fa-solid fa-bolt"></i> Live AI Match Engine
+        </span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;">
+        {% for rec in ai_recommendations|slice:":3" %}
+        <div style="background: rgba(18, 30, 23, 0.85); border: 1px solid var(--card-border); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <span class="badge-status healthy" style="font-size: 0.85rem; font-weight: 700;">
+                        {{ rec.match_percentage }}% AI Match
+                    </span>
+                    <span style="color: #4ade80; font-size: 0.85rem; font-weight: 700;">
+                        {% if rec.scheme.subsidy_percentage > 0 %}Upto {{ rec.scheme.subsidy_percentage }}% Subsidy{% endif %}
+                    </span>
+                </div>
+                
+                <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">
+                    {{ rec.scheme.title }}
+                </h4>
+                
+                <p style="color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4; margin-bottom: 12px;">
+                    {{ rec.scheme.description|truncatewords:22 }}
+                </p>
+
+                <!-- AI Reasons -->
+                <div style="background: rgba(0,0,0,0.25); border-radius: 8px; padding: 10px; margin-bottom: 14px;">
+                    <span style="color: var(--primary); font-size: 0.75rem; text-transform: uppercase; font-weight: 700;">Kyun Recommend Hui:</span>
+                    <ul style="padding-left: 18px; margin-top: 4px; font-size: 0.8rem; color: var(--text-secondary);">
+                        {% for r in rec.reasons %}
+                            <li>{{ r }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                {% if rec.scheme.official_link %}
+                <a href="{{ rec.scheme.official_link }}" target="_blank" class="btn-primary-glow" style="text-decoration: none; flex: 1; text-align: center; font-size: 0.85rem;">
+                    Apply <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i>
+                </a>
+                {% endif %}
+                <button type="button" class="btn-primary-glow" style="background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--card-border); font-size: 0.85rem; flex: 1;" 
+                    onclick="openEligibilityModal('{{ rec.scheme.id }}', '{{ rec.scheme.title|escapejs }}')">
+                    Check Details
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Overview Stats Grid -->
+<div class="grid-stats">
+    <div class="glass-card stat-box">
+        <div class="stat-icon"><i class="fa-solid fa-landmark"></i></div>
+        <div class="stat-info">
+            <span>Active Schemes</span>
+            <h3>{{ total_schemes|default:"0" }} Available</h3>
+        </div>
+    </div>
+    <div class="glass-card stat-box">
+        <div class="stat-icon"><i class="fa-solid fa-percent"></i></div>
+        <div class="stat-info">
+            <span>Direct Subsidies</span>
+            <h3>{{ subsidy_count|default:"0" }} Active</h3>
+        </div>
+    </div>
+    <div class="glass-card stat-box">
+        <div class="stat-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <div class="stat-info">
+            <span>Credit & KCC Loans</span>
+            <h3>{{ loan_count|default:"0" }} Programs</h3>
+        </div>
+    </div>
+    <div class="glass-card stat-box">
+        <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="stat-info">
+            <span>Crop Insurance</span>
+            <h3>{{ insurance_count|default:"0" }} Schemes</h3>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filter Form -->
+<div class="glass-card" style="padding: 20px; margin-bottom: 28px;">
+    <form method="GET" action="{% url 'ai_services:loan_subsidy' %}" style="display: flex; gap: 14px; flex-wrap: wrap; align-items: center;">
+        <div style="flex: 2; min-width: 220px;">
+            <input type="text" name="q" value="{{ search_query }}" class="form-input" placeholder="Search by scheme name or keywords..." style="margin-bottom: 0;">
+        </div>
+        <div style="flex: 1; min-width: 160px;">
+            <select name="state" class="form-input" style="margin-bottom: 0;">
+                <option value="">Select State (All)</option>
+                <option value="Madhya Pradesh" {% if state_filter == "Madhya Pradesh" %}selected{% endif %}>Madhya Pradesh</option>
+                <option value="Uttar Pradesh" {% if state_filter == "Uttar Pradesh" %}selected{% endif %}>Uttar Pradesh</option>
+                <option value="Maharashtra" {% if state_filter == "Maharashtra" %}selected{% endif %}>Maharashtra</option>
+                <option value="Rajasthan" {% if state_filter == "Rajasthan" %}selected{% endif %}>Rajasthan</option>
+            </select>
+        </div>
+        <div style="flex: 1; min-width: 140px;">
+            <select name="category" class="form-input" style="margin-bottom: 0;">
+                <option value="">All Categories</option>
+                <option value="Subsidy" {% if cat_filter == "Subsidy" %}selected{% endif %}>Subsidy</option>
+                <option value="Loan" {% if cat_filter == "Loan" %}selected{% endif %}>Loan</option>
+                <option value="Insurance" {% if cat_filter == "Insurance" %}selected{% endif %}>Insurance</option>
+                <option value="Solar" {% if cat_filter == "Solar" %}selected{% endif %}>Solar</option>
+                <option value="Machinery" {% if cat_filter == "Machinery" %}selected{% endif %}>Machinery</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-primary-glow" style="display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-magnifying-glass"></i> Filter
+        </button>
+        {% if search_query or state_filter or cat_filter %}
+        <a href="{% url 'ai_services:loan_subsidy' %}" class="btn-primary-glow" style="background: rgba(239,68,68,0.2); color: #f87171; text-decoration: none;">
+            Clear
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Dynamic Schemes Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px;">
+    {% for scheme in schemes %}
+    <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between; border-left: 4px solid var(--primary);">
+        <div>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <span class="badge-status {% if scheme.category == 'Subsidy' %}healthy{% elif scheme.category == 'Loan' %}monitor{% else %}rising{% endif %}">
+                    {{ scheme.category }}
+                </span>
+                <span style="color: var(--text-secondary); font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-map-pin" style="color: var(--primary);"></i> {{ scheme.state }}
+                </span>
+            </div>
+            <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 10px; color: var(--text-primary);">
+                {{ scheme.title }}
+            </h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.5; margin-bottom: 20px;">
+                {{ scheme.description }}
+            </p>
+        </div>
+        <div style="display: flex; gap: 10px; border-top: 1px solid var(--card-border); padding-top: 16px;">
+            {% if scheme.official_link %}
+            <a href="{{ scheme.official_link }}" target="_blank" class="btn-primary-glow" style="text-decoration: none; flex: 1; text-align: center; font-size: 0.85rem;">
+                Official Portal <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i>
+            </a>
+            {% else %}
+            <button class="btn-primary-glow" style="flex: 1; font-size: 0.85rem;" disabled>Official Portal</button>
+            {% endif %}
+            <button type="button" class="btn-primary-glow" style="background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--card-border); flex: 1; font-size: 0.85rem;" 
+                onclick="openEligibilityModal('{{ scheme.id }}', '{{ scheme.title|escapejs }}')">
+                Check Eligibility
+            </button>
+        </div>
+    </div>
+    {% empty %}
+    <div class="glass-card" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+        <i class="fa-solid fa-folder-open" style="font-size: 3rem; color: var(--text-secondary); margin-bottom: 16px; display: block;"></i>
+        <h3>No Schemes Match Your Filter</h3>
+        <p style="color: var(--text-secondary); margin-top: 8px;">Try selecting 'All States' or clearing search terms.</p>
+        <a href="{% url 'ai_services:loan_subsidy' %}" class="btn-primary-glow" style="text-decoration: none; display: inline-block; margin-top: 16px;">View All Schemes</a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- ================= ELIGIBILITY MODAL ================= -->
+<div id="eligibilityModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+    <div class="glass-card" style="max-width: 550px; width: 100%; border-color: var(--primary); max-height: 90vh; overflow-y: auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--primary);" id="modalSchemeTitle">Check Eligibility</h3>
+            <button type="button" onclick="closeEligibilityModal()" style="background: none; border: none; color: var(--text-secondary); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
+
+        <!-- Form Step -->
+        <form id="eligibilityForm" onsubmit="submitEligibilityCheck(event)">
+            {% csrf_token %}
+            <input type="hidden" name="scheme_id" id="modalSchemeId">
+
+            <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Farmer State</label>
+            <select name="state" class="form-input" required>
+                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                <option value="Rajasthan">Rajasthan</option>
+                <option value="Maharashtra">Maharashtra</option>
+                <option value="Other">Other State</option>
+            </select>
+
+            <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Land Area (In Acres)</label>
+            <input type="number" step="0.1" name="land_acres" class="form-input" placeholder="e.g. 5.5" required>
+
+            <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Farmer Category</label>
+            <select name="farmer_category" class="form-input">
+                <option value="small">Small / Marginal Farmer (&lt; 5 Acres)</option>
+                <option value="general">Large / Medium Farmer (&gt; 5 Acres)</option>
+                <option value="tenant">Tenant / Landless Farmer</option>
+            </select>
+
+            <label style="font-size: 0.85rem; color: var(--text-secondary); display: block; margin-bottom: 6px;">Estimated Annual Income (₹)</label>
+            <input type="number" name="annual_income" class="form-input" placeholder="e.g. 150000">
+
+            <button type="submit" id="evalBtn" class="btn-primary-glow" style="width: 100%; margin-top: 10px;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Evaluate My Eligibility
+            </button>
+        </form>
+
+        <!-- Result Section -->
+        <div id="eligibilityResult" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--card-border);">
+            <div id="resultStatusBadge" style="margin-bottom: 12px;"></div>
+            <p id="resultMessage" style="font-size: 0.95rem; line-height: 1.5;"></p>
+            
+            <div id="reasonsBox" style="display: none; margin: 12px 0; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); padding: 12px; border-radius: 8px;">
+                <strong style="color: #f87171; font-size: 0.85rem;">Issues Identified:</strong>
+                <ul id="reasonsList" style="padding-left: 20px; margin-top: 6px; font-size: 0.85rem; color: #fca5a5;"></ul>
+            </div>
+
+            <div id="docsBox" style="margin: 16px 0; background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.25); padding: 14px; border-radius: 8px;">
+                <strong style="color: var(--primary); font-size: 0.85rem;"><i class="fa-solid fa-folder-open"></i> Required Documents for Application:</strong>
+                <ul id="docsList" style="padding-left: 20px; margin-top: 8px; font-size: 0.85rem; color: var(--text-secondary);"></ul>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 16px;">
+                <a id="resultApplyBtn" href="#" target="_blank" class="btn-primary-glow" style="text-decoration: none; flex: 1; text-align: center; font-size: 0.9rem;">
+                    Apply on Official Portal <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+                <button type="button" onclick="closeEligibilityModal()" class="btn-primary-glow" style="background: rgba(255,255,255,0.1); color: var(--text-primary); border: 1px solid var(--card-border);">
+                    Close
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function openEligibilityModal(id, title) {
+        document.getElementById('modalSchemeId').value = id;
+        document.getElementById('modalSchemeTitle').textContent = "Eligibility Check: " + title;
+        document.getElementById('eligibilityForm').reset();
+        document.getElementById('eligibilityForm').style.display = 'block';
+        document.getElementById('eligibilityResult').style.display = 'none';
+        document.getElementById('eligibilityModal').style.display = 'flex';
+    }
+
+    function closeEligibilityModal() {
+        document.getElementById('eligibilityModal').style.display = 'none';
+    }
+
+    window.addEventListener('click', function(e) {
+        const modal = document.getElementById('eligibilityModal');
+        if (e.target === modal) {
+            closeEligibilityModal();
+        }
+    });
+
+    function submitEligibilityCheck(event) {
+        event.preventDefault();
+        const form = document.getElementById('eligibilityForm');
+        const formData = new FormData(form);
+        const evalBtn = document.getElementById('evalBtn');
+
+        evalBtn.disabled = true;
+        evalBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking Eligibility...';
+
+        fetch("{% url 'ai_services:check_eligibility' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Network response was not ok");
+            }
+            return response.json();
+        })
+        .then(data => {
+            form.style.display = 'none';
+            const resDiv = document.getElementById('eligibilityResult');
+            resDiv.style.display = 'block';
+
+            const badge = document.getElementById('resultStatusBadge');
+            if (data.eligible) {
+                badge.innerHTML = '<span class="badge-status healthy" style="font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-check"></i> Eligible (Aap Is Scheme Ke Liye Patra Hain)</span>';
+            } else {
+                badge.innerHTML = '<span class="badge-status critical" style="font-size: 0.95rem; display: inline-flex; align-items: center; gap: 6px;"><i class="fa-solid fa-circle-xmark"></i> Ineligible (Criteria Match Nahi Hua)</span>';
+            }
+
+            document.getElementById('resultMessage').textContent = data.message;
+
+            // Render Reasons
+            const reasonsBox = document.getElementById('reasonsBox');
+            const reasonsList = document.getElementById('reasonsList');
+            reasonsList.innerHTML = '';
+            if (data.reasons && data.reasons.length > 0) {
+                reasonsBox.style.display = 'block';
+                data.reasons.forEach(r => {
+                    const li = document.createElement('li');
+                    li.textContent = r;
+                    reasonsList.appendChild(li);
+                });
+            } else {
+                reasonsBox.style.display = 'none';
+            }
+
+            // Render Required Documents
+            const docsList = document.getElementById('docsList');
+            docsList.innerHTML = '';
+            if (data.required_docs && data.required_docs.length > 0) {
+                data.required_docs.forEach(doc => {
+                    const li = document.createElement('li');
+                    li.textContent = doc;
+                    docsList.appendChild(li);
+                });
+            }
+
+            document.getElementById('resultApplyBtn').href = data.apply_link;
+        })
+        .catch(err => {
+            alert("Eligibility check karne mein dikkat aayi. Kripya check karein ki views.py mein check_eligibility configure hai.");
+            console.error(err);
+        })
+        .finally(() => {
+            evalBtn.disabled = false;
+            evalBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Evaluate My Eligibility';
+        });
+    }
+</script>
+{% endblock %}

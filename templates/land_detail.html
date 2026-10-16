@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ land.title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>{{ land.title }}</h1><p>Khasra: {{ land.khasra_number|default:"-" }} &bull; {{ land.get_ownership_display }}</p></div>
+    <div class="actions">
+        <a href="{% url 'farms:crop_add' %}?land={{ land.pk }}" class="btn btn-primary-glow"><i class="fa-solid fa-seedling"></i> Fasal Boyein</a>
+        <a href="{% url 'farms:land_edit' land.pk %}" class="btn btn-ghost"><i class="fa-solid fa-pen"></i> Edit</a>
+        <a href="{% url 'farms:land_delete' land.pk %}" class="btn btn-danger"><i class="fa-solid fa-trash"></i></a>
+    </div>
+</div>
+<div class="grid grid-2">
+    <div class="glass-card">
+        <h3 class="mb-2">Khet ki Jaankari</h3>
+        <div class="kv">
+            <div><span>Kul Rakba</span><b>{{ land.total_area_acres }} Acre</b></div>
+            <div><span>Boyi Hui</span><b>{{ sown }} Acre</b></div>
+            <div><span>Khaali Zameen</span><b class="text-success">{{ available }} Acre</b></div>
+            <div><span>Mitti</span><b>{{ land.get_soil_type_display }}</b></div>
+            <div><span>Paani Source</span><b>{{ land.get_water_source_display }}</b></div>
+            <div><span>Sinchai</span><b>{{ land.get_irrigation_type_display }}</b></div>
+        </div>
+        <div class="progress mt-2"><span style="width:{{ land.usage_pct }}%"></span></div>
+        {% if land.notes %}<p class="muted small mt-2">{{ land.notes }}</p>{% endif %}
+    </div>
+    <div class="glass-card">
+        <h3 class="mb-2">Is Khet ki Fasalein ({{ crops|length }})</h3>
+        {% for c in crops %}
+        <div class="list-row"><div><a href="{% url 'farms:crop_detail' c.pk %}"><b>{{ c.name }}</b></a>
+            <div class="muted small">{{ c.get_season_display }} {{ c.season_year }} &bull; {{ c.allocated_acres }} Acre</div></div>
+            <span class="badge-status {% if c.is_active %}healthy{% else %}neutral{% endif %}">{{ c.get_stage_display }}</span></div>
+        {% empty %}<div class="empty"><i class="fa-solid fa-seedling"></i>Is khet me abhi koi fasal nahi.</div>{% endfor %}
+    </div>
+</div>
+{% endblock %}

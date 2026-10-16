@@ -1,0 +1,524 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#060d09">
+    <meta name="color-scheme" content="dark">
+    <script>document.documentElement.classList.add("js");</script>
+
+    <title>AgroSmart | Smart Farming Platform</title>
+
+    <meta name="description"
+          content="AgroSmart is a smart farming portal project by Shubham Rajput, featuring farm management, crop care, market information and AI-assisted farming tools.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <header class="navbar">
+        <div class="container nav-inner">
+
+            <a href="#home" class="brand" aria-label="AgroSmart Home">
+                <span class="brand-mark" aria-hidden="true">🌱</span>
+                <span class="brand-name">Agro<span>Smart</span></span>
+            </a>
+
+            <button
+                class="menu-toggle"
+                id="menuToggle"
+                type="button"
+                aria-label="Open navigation"
+                aria-expanded="false"
+                aria-controls="navLinks"
+            >☰</button>
+
+            <nav class="nav-links" id="navLinks" aria-label="Main navigation">
+                <a href="#home">Home</a>
+                <a href="#features">Features</a>
+                <a href="#workflow">Workflow</a>
+                <a href="#about">Developer</a>
+                <a href="#connect" class="nav-contact">Let's Connect ↗</a>
+
+                <!-- ADDED: Login and Sign Up -->
+                {% if user.is_authenticated %}
+                <a href="{% url 'farms:dashboard' %}" class="nav-login">Dashboard</a>
+                <form method="post" action="{% url 'accounts:logout' %}">{% csrf_token %}
+                    <button type="submit" class="nav-signup">Logout</button>
+                </form>
+                {% else %}
+                <a href="{% url 'accounts:login' %}" class="nav-login">Login</a>
+                <a href="{% url 'accounts:signup' %}" class="nav-signup">Sign Up ↗</a>
+                {% endif %}
+            </nav>
+
+        </div>
+    </header>
+
+
+    <main>
+
+        <!-- Hero -->
+        <section class="hero" id="home">
+            <div class="container hero-grid">
+
+                <div class="hero-copy">
+                    <div class="eyebrow">
+                        <span class="eyebrow-dot"></span>
+                        Smart Farming Platform
+                    </div>
+
+                    <h1>
+                        Smarter farming starts with
+                        <span>better information.</span>
+                    </h1>
+
+                    <p class="hero-description">
+                        AgroSmart is a smart farming portal concept that
+                        brings farm management, crop care, agricultural
+                        market information and AI-assisted tools together
+                        in one organized experience.
+                    </p>
+
+                    <!-- UPDATED: Login and Signup CTA buttons -->
+                    <div class="hero-actions">
+                        {% if user.is_authenticated %}
+                        <a href="{% url 'farms:dashboard' %}" class="btn btn-primary">
+                            Open Dashboard <span aria-hidden="true">↗</span>
+                        </a>
+                        {% else %}
+                        <a href="{% url 'accounts:signup' %}" class="btn btn-primary">
+                            Get Started <span aria-hidden="true">↗</span>
+                        </a>
+
+                        <a href="{% url 'accounts:login' %}" class="btn btn-outline">
+                            Login to AgroSmart
+                        </a>
+                        {% endif %}
+
+                        <a href="#about" class="btn btn-outline">
+                            Meet the Developer
+                        </a>
+                    </div>
+
+                    <div class="hero-meta">
+                        <span>Built with Django</span>
+                        <span class="meta-divider"></span>
+                        <span>Python &amp; AI/ML</span>
+                        <span class="meta-divider"></span>
+                        <span>Agriculture Technology</span>
+                    </div>
+                </div>
+
+
+                <!-- Single static preview panel -->
+                <div class="preview">
+
+                    <div class="preview-header">
+                        <div>
+                            <h2>Farm Management</h2>
+                            <p>A preview of the AgroSmart concept</p>
+                        </div>
+
+                        <span class="preview-badge">OVERVIEW</span>
+                    </div>
+
+                    <div
+                        class="farm-scene"
+                        role="img"
+                        aria-label="Illustration of green agricultural fields under a clear sky"
+                    >
+                        <div class="farm-sky"></div>
+                        <div class="sun"></div>
+                        <div class="hill hill-back"></div>
+                        <div class="hill hill-front"></div>
+                        <div class="field">
+                            <div class="field-lines"></div>
+                        </div>
+                    </div>
+
+                    <p class="preview-caption">
+                        <strong>One organized workspace.</strong>
+                        Designed around everyday farming information.
+                    </p>
+
+                    <div class="preview-stats">
+                        <div class="preview-stat">
+                            <span class="stat-label">Module 01</span>
+                            <span class="stat-value">Land &amp; Crops</span>
+                        </div>
+
+                        <div class="preview-stat">
+                            <span class="stat-label">Module 02</span>
+                            <span class="stat-value">Market &amp; Schemes</span>
+                        </div>
+
+                        <div class="preview-stat">
+                            <span class="stat-label">Module 03</span>
+                            <span class="stat-value">AI Assistance</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- Features -->
+        <section class="section section-white" id="features">
+            <div class="container">
+
+                <div class="section-heading">
+                    <span class="section-label">Core Modules</span>
+                    <h2>One place for your farming workflow</h2>
+                    <p>
+                        An organized platform concept for managing farm
+                        records and exploring agricultural information.
+                    </p>
+                </div>
+
+                <div class="features-grid">
+
+                    <article class="feature-card">
+                        <div class="feature-icon" aria-hidden="true">🌱</div>
+                        <h3>Land &amp; Crop Management</h3>
+                        <p>
+                            Organize land details, plots, crop cycles and
+                            important crop-related records.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-icon" aria-hidden="true">🩺</div>
+                        <h3>Crop Care &amp; Pest Detection</h3>
+                        <p>
+                            Explore crop-care information and AI-assisted
+                            approaches to identifying potential pest issues.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-icon" aria-hidden="true">💰</div>
+                        <h3>Farm Finance</h3>
+                        <p>
+                            Keep farm expenses, sales and financial records
+                            organized for easier review.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-icon" aria-hidden="true">🏛️</div>
+                        <h3>Government Schemes</h3>
+                        <p>
+                            Explore a dedicated module for agricultural
+                            schemes and subsidy information.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-icon" aria-hidden="true">📈</div>
+                        <h3>Market Information</h3>
+                        <p>
+                            Access a space designed for mandi prices and
+                            useful agricultural market information.
+                        </p>
+                    </article>
+
+                    <article class="feature-card">
+                        <div class="feature-icon" aria-hidden="true">🤖</div>
+                        <h3>AI &amp; Reports</h3>
+                        <p>
+                            Bring reports and AI-assisted farming tools
+                            into the broader farm management workflow.
+                        </p>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Workflow -->
+        <section class="section" id="workflow">
+            <div class="container">
+
+                <div class="section-heading">
+                    <span class="section-label">How It Fits Together</span>
+                    <h2>Simple structure. Practical purpose.</h2>
+                    <p>
+                        AgroSmart is organized around three broad steps
+                        to make farm information easier to manage.
+                    </p>
+                </div>
+
+                <div class="steps-grid">
+
+                    <article class="step-card">
+                        <span class="step-number">STEP 01</span>
+                        <h3>Organize Your Records</h3>
+                        <p>
+                            Keep land, crop and farm-related information
+                            organized in a structured workspace.
+                        </p>
+                    </article>
+
+                    <article class="step-card">
+                        <span class="step-number">STEP 02</span>
+                        <h3>Explore Useful Information</h3>
+                        <p>
+                            Find relevant sections for crop care, market
+                            information and government schemes.
+                        </p>
+                    </article>
+
+                    <article class="step-card">
+                        <span class="step-number">STEP 03</span>
+                        <h3>Review &amp; Learn</h3>
+                        <p>
+                            Use reports and planned AI-assisted features
+                            to explore agricultural data more effectively.
+                        </p>
+                    </article>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Developer -->
+        <section class="section section-white" id="about">
+            <div class="container about-grid">
+
+                <div class="developer-card">
+                    <div class="developer-avatar">
+                        <img src="{% static 'images/shubham.jpg' %}" alt="Shubham Rajput">
+                    </div>
+
+                    <h3>Shubham Rajput</h3>
+
+                    <p class="developer-role">
+                        Python Full stack Developer | AI/ML Enthusiast
+                    </p>
+
+                    <p class="developer-location">
+                        Indore, Madhya Pradesh, India
+                    </p>
+                </div>
+
+
+                <div class="about-copy">
+                    <span class="section-label">About the Developer</span>
+
+                    <h2>Building useful ideas with code.</h2>
+
+                    <p>
+                        Hi, I'm Shubham Rajput. I'm interested in Python
+                        full stack development, REST APIs, database-driven
+                        applications and artificial intelligence.
+                    </p>
+
+                    <p>
+                        AgroSmart is a project exploring how web development
+                        and intelligent tools can be brought together for
+                        agricultural use cases. I enjoy learning by building
+                        practical projects and improving them step by step.
+                    </p>
+
+                    <div class="skills" aria-label="Technologies and skills">
+                        <span class="skill">Python</span>
+                        <span class="skill">Django</span>
+                        <span class="skill">REST APIs</span>
+                        <span class="skill">SQL</span>
+                        <span class="skill">Git &amp; GitHub</span>
+                        <span class="skill">AI/ML</span>
+                    </div>
+
+                    <a
+                        href="https://github.com/Shubhamrajput46"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="btn btn-primary"
+                    >
+                        View GitHub Profile ↗
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- Project Repository -->
+        <section class="section">
+            <div class="container">
+
+                <div class="project-card">
+                    <div class="project-copy">
+                        <span class="section-label">Featured Project</span>
+
+                        <h3>AI Smart Farming Portal</h3>
+
+                        <p>
+                            Visit the project's GitHub repository to explore
+                            the source code, application structure and
+                            development progress.
+                        </p>
+
+                        <a
+                            href="https://github.com/Shubhamrajput46/AI-SMART-FARMING-PORTAL"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="btn btn-primary"
+                        >
+                            Explore Repository ↗
+                        </a>
+                    </div>
+
+                    <div class="project-symbol" aria-hidden="true">⌘</div>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- Connect -->
+        <section class="connect-section" id="connect">
+            <div class="container">
+                <div class="connect-content">
+
+                    <span class="section-label">Get in Touch</span>
+
+                    <h2>Let's connect and build something useful.</h2>
+
+                    <p>
+                        Interested in my work, collaborating on a project
+                        or discussing backend development and AI/ML?
+                        Connect with me through the links below.
+                    </p>
+
+                    <div class="social-links">
+
+                        <a
+                            href="https://github.com/Shubhamrajput46"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="social-link primary-social"
+                        >
+                            GitHub <span aria-hidden="true">↗</span>
+                        </a>
+
+                        <a
+                            href="https://www.linkedin.com/in/shubham-rajput-a9165633b/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="social-link"
+                        >
+                            LinkedIn <span aria-hidden="true">↗</span>
+                        </a>
+
+                        <a
+                            href="mailto:sr9960920@gmail.com"
+                            class="social-link"
+                        >
+                            Email Me <span aria-hidden="true">↗</span>
+                        </a>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container footer-inner">
+
+            <p>
+                © <span id="year">2026</span>
+                <strong>Shubham Rajput</strong>.
+                Built with care.
+            </p>
+
+            <a href="#home" class="back-top">Back to top ↑</a>
+
+        </div>
+    </footer>
+
+
+    <!-- Mobile app-like bottom bar -->
+    <div class="mobile-cta">
+        {% if user.is_authenticated %}
+        <a href="{% url 'farms:dashboard' %}" class="btn btn-primary">Open Dashboard ↗</a>
+        {% else %}
+        <a href="{% url 'accounts:login' %}" class="btn btn-outline">Login</a>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary">Get Started ↗</a>
+        {% endif %}
+    </div>
+
+    <script>
+        const menuToggle = document.getElementById("menuToggle");
+        const navLinks = document.getElementById("navLinks");
+
+        function closeMenu() {
+            navLinks.classList.remove("is-open");
+            menuToggle.setAttribute("aria-expanded", "false");
+            menuToggle.setAttribute("aria-label", "Open navigation");
+            menuToggle.textContent = "☰";
+        }
+
+        menuToggle.addEventListener("click", function () {
+            const isOpen = navLinks.classList.toggle("is-open");
+
+            menuToggle.setAttribute("aria-expanded", String(isOpen));
+            menuToggle.setAttribute(
+                "aria-label",
+                isOpen ? "Close navigation" : "Open navigation"
+            );
+            menuToggle.textContent = isOpen ? "×" : "☰";
+        });
+
+        navLinks.querySelectorAll("a").forEach(function (link) {
+            link.addEventListener("click", closeMenu);
+        });
+
+        window.addEventListener("resize", function () {
+            if (window.innerWidth > 680) {
+                closeMenu();
+            }
+        });
+
+
+        const navbar = document.querySelector(".navbar");
+        function onScroll() { navbar.classList.toggle("scrolled", window.scrollY > 10); }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
+
+        if ("IntersectionObserver" in window) {
+            const io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (e) {
+                    if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+                });
+            }, { threshold: 0.12 });
+            document.querySelectorAll(".hero-copy, .preview, .section-heading, .feature-card, .step-card, .developer-card, .about-copy, .project-card, .connect-content")
+                .forEach(function (el, i) {
+                    el.classList.add("reveal");
+                    el.style.setProperty("--d", (i % 3) * 0.08 + "s");
+                    io.observe(el);
+                });
+        }
+
+        document.getElementById("year").textContent =
+            new Date().getFullYear();
+    </script>
+
+</body>
+</html>

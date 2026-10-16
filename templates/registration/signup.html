@@ -1,0 +1,18 @@
+{% extends 'registration/auth_base.html' %}
+{% block title %}Account Banayein | AgroSmart{% endblock %}
+{% block auth_content %}
+<p class="sub">Naya kisan account banayein</p>
+<form method="post" data-once>{% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert-box danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid">
+        {% for field in form %}
+        <div class="field {% if field.name == 'full_name' or field.name == 'username' %}full{% endif %}">
+            <label>{{ field.label }}</label>{{ field }}
+            {% for e in field.errors %}<div class="error">{{ e }}</div>{% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    <button type="submit" class="btn-primary-glow" style="width:100%;margin-top:20px"><i class="fa-solid fa-user-plus"></i> Account Banayein</button>
+</form>
+<p class="sub" style="margin:18px 0 0">Pehle se account hai? <a href="{% url 'accounts:login' %}">Login karein</a></p>
+{% endblock %}

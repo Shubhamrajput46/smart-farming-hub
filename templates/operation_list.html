@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Kheti Kaam{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div><h1>🧑‍🌾 Kheti Kaam (Crop Care)</h1><p>Majdoori, sinchai, khad, spray, jotayi - sab ka rozana record. Kharcha apne-aap ledger me judta hai.</p></div>
+    <div class="actions"><a href="{% url 'farms:operation_add' %}" class="btn btn-primary-glow"><i class="fa-solid fa-plus"></i> Kaam Log Karein</a></div>
+</div>
+<div class="grid-stats">
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#f87171;background:rgba(239,68,68,.1)"><i class="fa-solid fa-indian-rupee-sign"></i></div><div class="stat-info"><span>Kul Kaam Kharcha</span><h3>&#8377;{{ stats.cost|default:0 }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-people-group"></i></div><div class="stat-info"><span>Majdoor Din</span><h3>{{ stats.labour|default:0 }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-clock"></i></div><div class="stat-info"><span>Machine / Motor Ghante</span><h3>{{ stats.hours|default:0 }}</h3></div></div>
+</div>
+<form method="get" class="glass-card filters">
+    <div class="f"><label>Fasal</label><select name="crop" class="form-input"><option value="">Sab</option>
+        {% for c in crops %}<option value="{{ c.pk }}" {% if sel_crop == c.pk|stringformat:"s" %}selected{% endif %}>{{ c.name }}</option>{% endfor %}</select></div>
+    <div class="f"><label>Kaam</label><select name="type" class="form-input"><option value="">Sab</option>
+        {% for v, l in op_types %}<option value="{{ v }}" {% if sel_type == v %}selected{% endif %}>{{ l }}</option>{% endfor %}</select></div>
+    <button class="btn btn-primary-glow">Filter</button><a href="{% url 'farms:operation_list' %}" class="btn btn-ghost">Reset</a>
+</form>
+<div class="glass-card">
+    <div class="table-wrap"><table class="custom-table stack-table">
+        <thead><tr><th>Tarikh</th><th>Kaam</th><th>Fasal</th><th>Majdoor</th><th>Saamaan</th><th>Ghante</th><th>Kharcha</th><th></th></tr></thead>
+        <tbody>
+        {% for op in page %}
+        <tr><td data-label="Tarikh" class="nowrap">{{ op.date|date:"d M Y" }}</td>
+            <td data-label="Kaam"><b>{{ op.get_operation_type_display }}</b></td>
+            <td data-label="Fasal"><a href="{% url 'farms:crop_detail' op.crop.pk %}">{{ op.crop.name }}</a></td>
+            <td data-label="Majdoor">{{ op.labour_count|default:"-" }}</td>
+            <td data-label="Saamaan">{{ op.material_used|default:"-" }}</td>
+            <td data-label="Ghante">{{ op.hours_run|default:"-" }}</td>
+            <td data-label="Kharcha"><b>&#8377;{{ op.total_cost }}</b></td>
+            <td class="actions-cell"><a href="{% url 'farms:operation_edit' op.pk %}" class="btn btn-sm btn-ghost"><i class="fa-solid fa-pen"></i></a>
+                <a href="{% url 'farms:operation_delete' op.pk %}" class="btn btn-sm btn-danger"><i class="fa-solid fa-trash"></i></a></td></tr>
+        {% empty %}<tr><td colspan="8"><div class="empty"><i class="fa-solid fa-clipboard-list"></i><h4>Koi kaam log nahi hua</h4><a href="{% url 'farms:operation_add' %}" class="btn btn-primary-glow">Pehla Kaam Log Karein</a></div></td></tr>{% endfor %}
+        </tbody></table></div>
+    {% include 'partials/_pagination.html' %}
+</div>
+{% endblock %}

@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head">
+    <div>
+        <h1>Namaste, {{ request.farmer.full_name }} 🙏</h1>
+        <p>Aapke khet, fasal aur hisaab ka aaj ka haal.</p>
+    </div>
+    <div class="actions">
+        <a href="{% url 'farms:crop_add' %}" class="btn btn-primary-glow"><i class="fa-solid fa-seedling"></i> Nayi Fasal</a>
+        <a href="{% url 'farms:operation_add' %}" class="btn btn-outline"><i class="fa-solid fa-hand-holding-droplet"></i> Kaam Log</a>
+        <a href="{% url 'finance:expense_add' %}" class="btn btn-ghost"><i class="fa-solid fa-wallet"></i> Kharcha</a>
+    </div>
+</div>
+
+{% if not lands_count %}
+<div class="glass-card empty"><i class="fa-solid fa-map"></i><h4>Shuruaat karein</h4>
+    <p>Sabse pehle apna khet add karein, phir fasal ki buwai log karein.</p>
+    <a href="{% url 'farms:land_add' %}" class="btn btn-primary-glow"><i class="fa-solid fa-plus"></i> Pehla Khet Add Karein</a></div>
+{% else %}
+
+<div class="grid-stats">
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+        <div class="stat-info"><span>Boyi / Kul Zameen</span><h3>{{ total_sown }} / {{ total_land }} Acre</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#f87171;background:rgba(239,68,68,.1)"><i class="fa-solid fa-wallet"></i></div>
+        <div class="stat-info"><span>Kul Kharcha</span><h3 class="text-danger">&#8377;{{ total_expense }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+        <div class="stat-info"><span>Kul Bikri</span><h3 class="text-success">&#8377;{{ total_income }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#fbbf24;background:rgba(245,158,11,.1)"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="stat-info"><span>Net Munafa (Bikri - Kharcha)</span><h3 class="{% if net_profit < 0 %}text-danger{% else %}text-success{% endif %}">&#8377;{{ net_profit }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#fbbf24;background:rgba(245,158,11,.1)"><i class="fa-solid fa-hourglass-half"></i></div>
+        <div class="stat-info"><span>Milna Baaki</span><h3 class="text-warning">&#8377;{{ receivable }}</h3></div></div>
+    <div class="glass-card stat-box"><div class="stat-icon" style="color:#f87171;background:rgba(239,68,68,.1)"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <div class="stat-info"><span>Dena Baaki (Udhaar)</span><h3 class="text-danger">&#8377;{{ payable }}</h3></div></div>
+</div>
+
+<div class="grid grid-2">
+    <!-- Active crops -->
+    <div class="glass-card">
+        <div class="card-title"><h3><i class="fa-solid fa-wheat-awn"></i> Chalu Fasal ({{ active_crops|length }})</h3>
+            <a href="{% url 'farms:crop_list' %}" class="small">Sab dekhein</a></div>
+        {% for crop in active_crops|slice:":5" %}
+        <div class="list-row" style="flex-direction:column;align-items:stretch;gap:8px">
+            <div class="between">
+                <a href="{% url 'farms:crop_detail' crop.pk %}" style="color:var(--text-primary);text-decoration:none"><b>{{ crop.name }}</b>
+                    <span class="muted small"> - {{ crop.land.title }}, {{ crop.allocated_acres }} Acre</span></a>
+                <span class="badge-status {% if crop.is_overdue %}danger{% elif crop.days_to_harvest <= 7 %}warning{% else %}healthy{% endif %}">
+                    {% if crop.is_overdue %}{{ crop.days_to_harvest|cut:'-' }} din late{% else %}{{ crop.days_to_harvest }} din baaki{% endif %}</span>
+            </div>
+            <div class="progress {% if crop.is_overdue %}bad{% elif crop.progress_pct > 85 %}warn{% endif %}"><span style="width:{{ crop.progress_pct }}%"></span></div>
+            <div class="muted small">{{ crop.get_stage_display }}</div>
+        </div>
+        {% empty %}
+        <div class="empty"><i class="fa-solid fa-seedling"></i>Abhi koi chalu fasal nahi.<br><a href="{% url 'farms:crop_add' %}" class="btn btn-primary-glow btn-sm">Fasal Boyein</a></div>
+        {% endfor %}
+    </div>
+
+    <!-- Reminders -->
+    <div class="glass-card">
+        <div class="card-title"><h3><i class="fa-solid fa-list-check"></i> Aane Wale Kaam</h3>
+            <a href="{% url 'notifications:reminder_add' %}" class="btn btn-sm btn-outline"><i class="fa-solid fa-plus"></i> Naya</a></div>
+        {% for r in todo_reminders %}
+        <div class="list-row">
+            <div><b>{{ r.title }}</b><div class="muted small">{{ r.due_date|date:"d M Y" }}{% if r.crop %} - {{ r.crop.name }}{% endif %}</div></div>
+            <div class="row-flex">
+                <span class="badge-status {% if r.is_overdue %}danger{% else %}warning{% endif %}">{% if r.is_overdue %}Late{% else %}Jald{% endif %}</span>
+                <form method="post" action="{% url 'notifications:reminder_toggle' r.pk %}" class="inline-form">{% csrf_token %}<input type="hidden" name="next" value="/">
+                    <button class="btn btn-sm btn-ghost" title="Ho gaya"><i class="fa-solid fa-check"></i></button></form>
+            </div>
+        </div>
+        {% empty %}<div class="empty"><i class="fa-regular fa-calendar-check"></i>Agle 3 din koi kaam pending nahi.</div>{% endfor %}
+    </div>
+
+    <!-- Harvest soon -->
+    <div class="glass-card">
+        <div class="card-title"><h3><i class="fa-solid fa-tractor"></i> Katayi Nazdeek (15 din)</h3></div>
+        {% for c in harvest_soon %}
+        <div class="list-row"><div><b>{{ c.name }}</b><div class="muted small">{{ c.expected_harvest_date|date:"d M Y" }}</div></div>
+            <a class="btn btn-sm btn-primary-glow" href="{% url 'farms:crop_harvest' c.pk %}">Utpadan Darj Karein</a></div>
+        {% empty %}<div class="empty"><i class="fa-solid fa-calendar"></i>Abhi koi katayi nazdeek nahi.</div>{% endfor %}
+    </div>
+
+    <!-- Stock -->
+    <div class="glass-card">
+        <div class="card-title"><h3><i class="fa-solid fa-warehouse"></i> Godown Stock (Bikne ko baaki)</h3></div>
+        {% for c in in_stock %}
+        <div class="list-row"><div><b>{{ c.name }}</b><div class="muted small">{{ c.remaining_stock }} Qt bacha ({{ c.actual_yield_quintal }} Qt me se)</div></div>
+            <a class="btn btn-sm btn-outline" href="{% url 'finance:sale_add' %}?crop={{ c.pk }}">Bikri Darj</a></div>
+        {% empty %}<div class="empty"><i class="fa-solid fa-box-open"></i>Koi stock nahi.</div>{% endfor %}
+    </div>
+</div>
+
+<div class="glass-card">
+    <div class="card-title"><h3><i class="fa-solid fa-clock-rotate-left"></i> Haal Ke Kheti Kaam</h3><a href="{% url 'farms:operation_list' %}" class="small">Sab dekhein</a></div>
+    {% for op in recent_operations %}
+    <div class="list-row"><div><b>{{ op.get_operation_type_display }}</b> <span class="muted small">- {{ op.crop.name }}</span>
+        <div class="muted small">{{ op.date|date:"d M" }}{% if op.labour_count %} | {{ op.labour_count }} majdoor{% endif %}{% if op.material_used %} | {{ op.material_used }}{% endif %}</div></div>
+        <b>&#8377;{{ op.total_cost }}</b></div>
+    {% empty %}<div class="empty"><i class="fa-solid fa-clipboard-list"></i>Abhi koi kaam log nahi hua.</div>{% endfor %}
+</div>
+
+{% if est_revenue %}
+<p class="muted small" style="margin-top:14px"><i class="fa-solid fa-circle-info"></i> Chalu fasal ki anumaanit kamayi (mandi bhav ke hisaab se): <b>&#8377;{{ est_revenue }}</b>{% if missing_rates %} ({{ missing_rates }} fasal ka bhav nahi mila){% endif %}</p>
+{% endif %}
+{% endif %}
+{% endblock %}
