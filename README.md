@@ -1,19 +1,6 @@
 # Smart Farming (Django)
 
-## Chalane ke steps
-```
-python -m venv venv
-venv\Scripts\activate          (Windows)   |   source venv/bin/activate  (Linux/Mac)
-pip install -r requirements.txt
-copy .env.example .env         (MySQL chahiye to DB_* uncomment karein, nayi khaali database banayein)
-python manage.py migrate
-python manage.py seed_demo     (optional: demo user  demo / demo12345 + sample data)
-python manage.py runserver
-```
-Project start hote hi **http://127.0.0.1:8000/** par `index.html` (landing page) khulta hai.
-Login: /accounts/login/ | Signup: /accounts/signup/ | Dashboard: /dashboard/
-
-## Flow (asli kheti jaisa)
+## Flow 
 Signup -> Khet (Land) -> Fasal (Buwai) -> Kheti Kaam (majdoor/paani/khad/spray, kharcha apne-aap ledger me)
 -> Stage update -> Katayi/Utpadan darj -> Godown stock -> Bikri (stock se zyada nahi bik sakta, partial payment, "Paisa Mila")
 -> Kharcha (udhaar track) -> Reports (fasal-wise munafa, CSV, print) -> Soochnayein + Yaad-dihani.
