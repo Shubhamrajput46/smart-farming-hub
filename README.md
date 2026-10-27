@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 # Smart Farming (Django)
 
 ## Flow 
@@ -17,3 +18,5 @@ Signup -> Khet (Land) -> Fasal (Buwai) -> Kheti Kaam (majdoor/paani/khad/spray, 
 - AI Pest page: `/api/ai/assistant/` (OPENAI_API_KEY `.env` me chahiye)
 - Mandi page: "API se refresh" -> `/api/services/mandi-prices/`
 - Swagger docs: /api/docs/
+=======
+>>>>>>> Stashed changes
